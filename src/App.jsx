@@ -1,122 +1,919 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+const GITHUB = "https://github.com/fahadamjad009";
+const LINKEDIN = "https://www.linkedin.com/in/fahad-amjad009";
+const EMAIL = "fahadamjad_10@hotmail.com";
+const RESUME_URL = "#"; // UPDATE: host your CV PDF and link here
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const ROLES = [
+  "Data Scientist.",
+  "Analytics Engineer.",
+  "AI/ML Engineer.",
+  "FinTech Risk Analyst.",
+];
 
-      <div className="ticks"></div>
+const EXPERIENCE = [
+  {
+    company: "JAMID (Decentralized Identity Wallet)",
+    logo: "🔐",
+    period: "2025 — Present",
+    roles: [
+      {
+        title: "Contributing Engineer — Android / Identity",
+        period: "2025 — Present",
+        points: [
+          "Contributing engineer on a merged Altme + AlphaWallet Android APK integrating W3C Verifiable Credentials holder flows with an embedded crypto wallet.",
+          "Designed and wired the normalized holder-flow activity chain across six Android Activities with consistent internal data contracts.",
+          "Built the issuer-path scaffolding against a 15-field normalized issuer contract with Java, XML layouts, and Gradle builds.",
+          "Implemented Keycloak-backed portal authentication with real sign-in, role mapping, and protected admin routes.",
+        ],
+      },
+    ],
+  },
+  {
+    company: "University of Technology Sydney",
+    logo: "🎓",
+    period: "2024",
+    roles: [
+      {
+        title: "Data Scientist — UTS Industry Capstone",
+        period: "2024",
+        points: [
+          "Developed ML models (Random Forest, SVM, ensemble learning) for healthcare and weather predictive analytics with high accuracy.",
+          "Delivered stakeholder presentations with Tableau and Power BI dashboards communicating model performance to non-technical audiences.",
+          "Applied cross-validation, ROC/AUC, precision-recall analysis, and confusion matrices for rigorous model evaluation.",
+        ],
+      },
+    ],
+  },
+];
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const PROJECTS = [
+  {
+    num: "01",
+    title: "ASX/ABS Early Warning Platform",
+    subtitle: "Financial risk detection with ML",
+    points: [
+      "Built an ML pipeline combining ASX market data with macroeconomic indicators for financial risk detection using XGBoost and Random Forest ensemble.",
+      "Engineered features: 12-month returns, rolling volatility, maximum drawdown, momentum, and liquidity proxies from real ASX price data.",
+      "Deployed as a Streamlit dashboard with FastAPI scoring service, calibrated threshold (0.8267), and interactive risk visualizations.",
+      "Implemented CI/CD with GitHub Actions, Docker containerization, and 8-test pytest suite.",
+    ],
+    tags: ["Python", "XGBoost", "scikit-learn", "FastAPI", "Streamlit", "Docker"],
+    link: "https://github.com/fahadamjad009/asx-abs-early-warning",
+    live: "https://asx-early-warning.streamlit.app",
+  },
+  {
+    num: "02",
+    title: "T1-RAG-REG Regulatory Intelligence",
+    subtitle: "RAG system for regulatory compliance",
+    points: [
+      "Developed a RAG system with hybrid retrieval (BM25 + dense vectors) for regulatory document search using reciprocal rank fusion.",
+      "Evaluated with Recall@K, MRR, nDCG retrieval quality metrics and deployed as a FastAPI service.",
+      "Built for Australian regulatory compliance — APRA prudential standards, ASIC guidance documents.",
+      "Demonstrates enterprise AI capability: hybrid search, evaluation metrics, and production API design.",
+    ],
+    tags: ["Python", "FastAPI", "BM25", "FAISS", "sentence-transformers", "RAG"],
+    link: "https://github.com/fahadamjad009/t1-rag-reg",
+  },
+  {
+    num: "03",
+    title: "Customer Churn Benchmark Pipeline",
+    subtitle: "ML benchmarking with model comparison",
+    points: [
+      "Built a reproducible benchmarking pipeline comparing Random Forest, Logistic Regression, and XGBoost for customer churn prediction.",
+      "Streamlit dashboard displaying ROC curves, confusion matrices, and model comparison metrics.",
+      "Demonstrates MLOps thinking: reproducible evaluation, model selection, and interactive results communication.",
+    ],
+    tags: ["Python", "XGBoost", "Logistic Regression", "Streamlit", "scikit-learn"],
+    link: "https://github.com/fahadamjad009/customer-churn-ml-benchmark",
+  },
+  {
+    num: "04",
+    title: "Mining Operations Predictive Maintenance",
+    subtitle: "Industrial IoT analytics platform",
+    points: [
+      "Built a predictive maintenance system using equipment telemetry data for downtime risk prediction.",
+      "ML models for failure forecasting with Streamlit dashboards and end-to-end analytics workflow.",
+      "Demonstrates domain analytics capability in industrial/IoT context beyond financial services.",
+    ],
+    tags: ["Python", "scikit-learn", "Streamlit", "Predictive Analytics"],
+    link: "https://github.com/fahadamjad009/mining-operations-analytics-platform",
+  },
+  {
+    num: "05",
+    title: "JAMID Decentralized Identity Wallet",
+    subtitle: "Android identity + crypto super-app",
+    points: [
+      "Merged Altme SSI wallet + AlphaWallet crypto wallet into a single Android APK with W3C Verifiable Credentials.",
+      "24/45 engineering tasks completed: holder flow, issuer path, verifier loop, Keycloak IAM portal, Regula biometric scaffold.",
+      "Demonstrates real production engineering: Android Activities, Gradle, Keycloak, walt.id, TokenScript compatibility.",
+    ],
+    tags: ["Android", "Java", "Kotlin", "W3C VCs", "Keycloak", "walt.id"],
+    link: "https://github.com/fahadamjad009/Jamid",
+  },
+];
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const SKILLS = [
+  {
+    num: "I",
+    title: "Languages & ML",
+    items: [
+      "Python",
+      "SQL",
+      "R",
+      "XGBoost",
+      "Random Forest",
+      "SVM",
+      "scikit-learn",
+      "Pandas",
+      "NumPy",
+    ],
+  },
+  {
+    num: "II",
+    title: "Data Engineering",
+    items: [
+      "Airflow",
+      "DBT",
+      "FastAPI",
+      "ETL Pipelines",
+      "Medallion Architecture",
+      "GitHub Actions",
+    ],
+  },
+  {
+    num: "III",
+    title: "Databases",
+    items: ["PostgreSQL", "MySQL", "BigQuery", "Snowflake", "MongoDB", "DuckDB"],
+  },
+  {
+    num: "IV",
+    title: "Visualisation & BI",
+    items: ["Tableau", "Power BI", "Streamlit", "Plotly", "Matplotlib"],
+  },
+  {
+    num: "V",
+    title: "Cloud & DevOps",
+    items: ["AWS (EC2, S3)", "GCP (BigQuery, Vertex AI)", "Azure", "Docker", "Git/GitHub", "CI/CD"],
+  },
+  {
+    num: "VI",
+    title: "AI & NLP",
+    items: ["RAG Systems", "BM25 + Vector Search", "sentence-transformers", "LLM Integration", "Hybrid Retrieval"],
+  },
+  {
+    num: "VII",
+    title: "Mobile & Identity",
+    items: ["Android (Java/Kotlin)", "Gradle", "W3C VCs", "OID4VCI", "Keycloak", "TokenScript"],
+  },
+  {
+    num: "VIII",
+    title: "Domain Knowledge",
+    items: [
+      "Financial Analytics",
+      "Risk Modelling",
+      "Regulatory Compliance",
+      "Predictive Maintenance",
+      "Accounting (AASB)",
+    ],
+  },
+];
+
+function useTypewriter(words, typingSpeed = 80, deletingSpeed = 40, pause = 2000) {
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = words[wordIndex];
+    let timeout;
+
+    if (!isDeleting && text === current) {
+      timeout = setTimeout(() => setIsDeleting(true), pause);
+    } else if (isDeleting && text === "") {
+      setIsDeleting(false);
+      setWordIndex((i) => (i + 1) % words.length);
+    } else {
+      timeout = setTimeout(() => {
+        setText(current.substring(0, text.length + (isDeleting ? -1 : 1)));
+      }, isDeleting ? deletingSpeed : typingSpeed);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [text, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pause]);
+
+  return text;
 }
 
-export default App
+export default function Portfolio() {
+  const typedRole = useTypewriter(ROLES);
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #1a1a1a;
+      --bg4: #222222;
+      --border: #2a2a2a;
+      --text: #ededed;
+      --text2: #999;
+      --text3: #666;
+      --accent: #64ffda;
+      --accent2: #5ce0c8;
+      --blue: #6699ff;
+      --font: 'Inter', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: var(--mono);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .nav-links a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-content {
+      animation: fadeUp 0.8s ease;
+    }
+
+    .hero-hello {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .hero-name {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+
+    .hero-typed {
+      font-size: 20px;
+      color: var(--text2);
+      margin-bottom: 20px;
+      height: 30px;
+    }
+
+    .hero-typed span {
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    .hero-cursor {
+      animation: blink 0.8s infinite;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text3);
+      max-width: 560px;
+      margin-bottom: 8px;
+    }
+
+    .hero-role {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 28px;
+    }
+
+    .hero-role strong {
+      color: var(--text);
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .btn-primary {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: rgba(100, 255, 218, 0.1);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .hero-socials {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero-socials a {
+      color: var(--text3);
+      text-decoration: none;
+      font-size: 14px;
+      font-family: var(--mono);
+      transition: color 0.2s;
+    }
+
+    .hero-socials a:hover {
+      color: var(--accent);
+    }
+
+    .section {
+      padding: 100px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 48px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .exp-item {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s ease;
+    }
+
+    .exp-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .exp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .exp-company {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .exp-period {
+      font-size: 14px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .exp-role-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .exp-role-period {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+
+    .exp-points {
+      list-style: none;
+    }
+
+    .exp-points li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    .exp-points li::before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .proj-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .proj-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .proj-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(100, 255, 218, 0.06);
+    }
+
+    .proj-num {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--bg4);
+      font-family: var(--mono);
+      position: absolute;
+      top: 16px;
+      right: 24px;
+    }
+
+    .proj-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      padding-right: 56px;
+    }
+
+    .proj-subtitle {
+      font-size: 14px;
+      color: var(--accent);
+      font-family: var(--mono);
+      margin-bottom: 16px;
+    }
+
+    .proj-points {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+
+    .proj-points li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    .proj-points li::before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .proj-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .proj-tag {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(100, 255, 218, 0.08);
+      color: var(--accent);
+      font-family: var(--mono);
+      border: 1px solid rgba(100, 255, 218, 0.15);
+    }
+
+    .proj-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .proj-link {
+      font-size: 13px;
+      color: var(--text2);
+      text-decoration: none;
+      font-family: var(--mono);
+      transition: color 0.2s;
+    }
+
+    .proj-link:hover {
+      color: var(--accent);
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .skill-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .skill-card:hover {
+      border-color: var(--accent);
+    }
+
+    .skill-num {
+      font-size: 12px;
+      color: var(--accent);
+      font-family: var(--mono);
+      margin-bottom: 4px;
+    }
+
+    .skill-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .skill-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .skill-item {
+      font-size: 13px;
+      color: var(--text2);
+      padding: 4px 10px;
+      background: var(--bg3);
+      border-radius: 4px;
+    }
+
+    .contact {
+      text-align: center;
+      padding: 80px 48px;
+    }
+
+    .contact-text {
+      font-size: 16px;
+      color: var(--text2);
+      margin-bottom: 24px;
+    }
+
+    .contact-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text3);
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        padding: 0 20px;
+      }
+
+      .nav-links {
+        gap: 16px;
+      }
+
+      .nav-links a {
+        font-size: 12px;
+      }
+
+      .hero {
+        padding: 0 20px;
+      }
+
+      .hero-name {
+        font-size: 36px;
+      }
+
+      .section {
+        padding: 60px 20px;
+      }
+
+      .skills-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .exp-item {
+        flex-direction: column;
+      }
+    }
+  `;
+
+  return (
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <style>{css}</style>
+
+      <nav className="nav">
+        <a href="#home" className="nav-logo">
+          FAHAD
+        </a>
+
+        <div className="nav-links">
+          <a href="#home">Home</a>
+          <a href="#experience">Experience</a>
+          <a href="#projects">Projects</a>
+          <a href="#skills">Skills</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+
+      <section id="home" className="hero">
+        <div className="hero-content">
+          <div className="hero-hello">Hello, my name is</div>
+
+          <h1 className="hero-name">FAHAD AMJAD</h1>
+
+          <div className="hero-typed">
+            <span>{typedRole}</span>
+            <span className="hero-cursor">|</span>
+          </div>
+
+          <p className="hero-sub">
+            Building ML systems, data pipelines, and analytics platforms.
+            Combining financial domain expertise with production-grade data science.
+          </p>
+
+          <p className="hero-role">
+            <strong>Data Scientist & Analytics Engineer</strong> — Sydney, NSW
+            <br />
+            UTS Master of Data Science (Distinction) + Master of Professional Accounting
+          </p>
+
+          <div className="hero-btns">
+            <a href={RESUME_URL} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+              View Resume
+            </a>
+
+            <a href="#projects" className="btn btn-ghost">
+              See Projects
+            </a>
+          </div>
+
+          <div className="hero-socials">
+            <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+              linkedin.com/in/fahad-amjad009
+            </a>
+
+            <a href={GITHUB} target="_blank" rel="noopener noreferrer">
+              github.com/fahadamjad009
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="experience" className="section">
+        <h2 className="section-title">Experience</h2>
+
+        {EXPERIENCE.map((exp) => (
+          <div key={exp.company} className="exp-item">
+            <div className="exp-logo">{exp.logo}</div>
+
+            <div style={{ flex: 1 }}>
+              <div className="exp-header">
+                <span className="exp-company">{exp.company}</span>
+                <span className="exp-period">{exp.period}</span>
+              </div>
+
+              {exp.roles.map((role) => (
+                <div key={role.title} style={{ marginBottom: 20 }}>
+                  <div className="exp-role-title">{role.title}</div>
+                  <div className="exp-role-period">{role.period}</div>
+
+                  <ul className="exp-points">
+                    {role.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section id="projects" className="section">
+        <h2 className="section-title">Projects</h2>
+
+        <div className="proj-grid">
+          {PROJECTS.map((project) => (
+            <div key={project.title} className="proj-card">
+              <div className="proj-num">{project.num}</div>
+
+              <h3 className="proj-title">{project.title}</h3>
+
+              <div className="proj-subtitle">{project.subtitle}</div>
+
+              <ul className="proj-points">
+                {project.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+
+              <div className="proj-tags">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="proj-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="proj-links">
+                <a href={project.link} className="proj-link" target="_blank" rel="noopener noreferrer">
+                  GitHub ↗
+                </a>
+
+                {project.live && (
+                  <a href={project.live} className="proj-link" target="_blank" rel="noopener noreferrer">
+                    Live Demo ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="skills" className="section">
+        <h2 className="section-title">Skills</h2>
+
+        <div className="skills-grid">
+          {SKILLS.map((category) => (
+            <div key={category.title} className="skill-card">
+              <div className="skill-num">{category.num}</div>
+              <h4 className="skill-title">{category.title}</h4>
+
+              <div className="skill-items">
+                {category.items.map((skill) => (
+                  <span key={skill} className="skill-item">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="contact" className="contact">
+        <h2 className="section-title" style={{ justifyContent: "center" }}>
+          Contact
+        </h2>
+
+        <p className="contact-text">
+          Open to new opportunities in Data Science, Analytics Engineering, and AI/ML roles.
+          <br />
+          Reach out via LinkedIn or email.
+        </p>
+
+        <div className="contact-btns">
+          <a href={LINKEDIN} className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            LinkedIn
+          </a>
+
+          <a href={GITHUB} className="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+
+          <a href={`mailto:${EMAIL}`} className="btn btn-ghost">
+            Email
+          </a>
+        </div>
+      </section>
+
+      <div className="footer">Designed & Built by Fahad Amjad · 2026</div>
+    </div>
+  );
+}
