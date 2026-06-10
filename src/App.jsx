@@ -1,17 +1,17 @@
-// Portfolio V2 — Black/Mint aesthetic matching fahadamjad009.github.io
+﻿// Portfolio V2 â€” Black/Mint aesthetic matching fahadamjad009.github.io
 // Drop this into your src/App.jsx and add JetBrains Mono + Inter to index.html
 // <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 import { useState, useEffect, useRef } from "react";
 
 const PROJECTS = [
-  { id:"ml2", code:"// 01", name:"LLM Regulatory Agent", cat:"AI Engineering", desc:"Multi-source regulatory intelligence platform ingesting ASIC, APRA and RBA filings into a vector index. Analyst-grade summaries and compliance flags via LLM agent pipeline.", stack:["Python","LangChain","FAISS","FastAPI","SQLite"], status:"In Progress", sc:"#F59E0B", r:true, e:true },
+  { id:"ml2", code:"// 01", name:"LLM Regulatory Agent", cat:"AI Engineering", desc:"LangGraph agent for regulatory Q&A and SAR narrative generation. Hybrid FAISS+BM25 retrieval with RRF fusion, local llama3.2:3b via Ollama, FastAPI service. 40/40 tests passing.", stack:["Python","LangGraph","Ollama","FAISS","BM25","FastAPI","Streamlit"], status:"Complete", sc:"#64FFDA", r:true, e:true },
   { id:"ml1", code:"// 02", name:"Credit Risk Scorer", cat:"Deep Learning", desc:"PyTorch neural network for financial credit risk classification with class-imbalance handling, threshold calibration, and SHAP explainability on every prediction.", stack:["PyTorch","SHAP","Scikit-learn","Python"], status:"Complete", sc:"#64FFDA", r:true, e:true },
   { id:"jamid", code:"// 03", name:"JAMID Identity Wallet", cat:"Decentralised Identity", desc:"Open-source Android identity wallet implementing OID4VCI/OID4VP credential flows with Keycloak-backed issuer portal, verifier gateway, and policy engine.", stack:["Android","Keycloak","OID4VCI","Next.js","PostgreSQL"], status:"In Progress", sc:"#F59E0B", r:true, e:true },
-  { id:"t1", code:"// 04", name:"RegTech RAG Engine", cat:"RAG · NLP", desc:"Retrieval-augmented generation pipeline for regulatory document Q&A with chunk-level retrieval, reranking, and citation-grounded answers with hallucination guardrails.", stack:["LlamaIndex","FAISS","OpenAI","Python"], status:"Complete", sc:"#64FFDA", r:true, e:true },
+  { id:"t1", code:"// 04", name:"RegTech RAG Engine", cat:"RAG Â· NLP", desc:"Retrieval-augmented generation pipeline for regulatory document Q&A with chunk-level retrieval, reranking, and citation-grounded answers with hallucination guardrails.", stack:["LlamaIndex","FAISS","OpenAI","Python"], status:"Complete", sc:"#64FFDA", r:true, e:true },
   { id:"asx", code:"// 05", name:"ASX/ABS Early Warning", cat:"FinTech Analytics", desc:"Live financial risk platform combining ASX market data with ABS macroeconomic indicators. Anomaly detection, stress-testing and risk scoring across the AU market.", stack:["Streamlit","PySpark","Pandas","Plotly","AWS"], status:"Deployed", sc:"#64FFDA", r:true, e:false },
   { id:"churn", code:"// 06", name:"Churn ML Benchmark", cat:"Machine Learning", desc:"Multi-model customer churn benchmark across XGBoost, Random Forest and Logistic Regression with full ROC/AUC comparison, SHAP importance and threshold analysis.", stack:["XGBoost","Scikit-learn","SHAP","Python"], status:"Complete", sc:"#64FFDA", r:false, e:true },
-  { id:"tableau", code:"// 07", name:"ASX Tableau Intelligence", cat:"BI · Visualisation", desc:"Nine-sheet Tableau dashboard and published story on ASX sector performance, correlation matrices, and earnings seasonality. Live on Tableau Public.", stack:["Tableau","Python","SQL","yfinance"], status:"Deployed", sc:"#64FFDA", r:true, e:false },
+  { id:"tableau", code:"// 07", name:"ASX Tableau Intelligence", cat:"BI Â· Visualisation", desc:"Nine-sheet Tableau dashboard and published story on ASX sector performance, correlation matrices, and earnings seasonality. Live on Tableau Public.", stack:["Tableau","Python","SQL","yfinance"], status:"Deployed", sc:"#64FFDA", r:true, e:false },
 ];
 
 const STACK = ["Python","PyTorch","LangChain","LlamaIndex","FastAPI","Android","Kotlin","Keycloak","OID4VCI","PySpark","Streamlit","Tableau","Power BI","AWS","Docker","SHAP","Plotly","React","Next.js","SQL","dbt","Airflow"];
@@ -93,7 +93,7 @@ function ProjectCard({ project, index }) {
         {project.stack.map(s => <span key={s} style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".6rem", color: hov ? "#555" : "#333", background:"#111", border:"1px solid " + (hov?"#2a2a2a":"#1e1e1e"), borderRadius:3, padding:"3px 8px", transition:"color .2s,border-color .2s" }}>{s}</span>)}
       </div>
       <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".68rem", color: hov ? "#64FFDA" : "#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s", display:"flex", alignItems:"center", gap:5, marginTop:2 }}>
-        ↗ view on github
+        â†— view on github
       </a>
     </div>
   );
@@ -155,7 +155,7 @@ export default function Portfolio() {
             <button key={v} onClick={() => setView(v)} style={{ background: view===v ? "rgba(100,255,218,.12)" : "transparent", color: view===v ? MINT : "#555", border: view===v ? "1px solid rgba(100,255,218,.25)" : "1px solid transparent", cursor:"pointer", borderRadius:36, padding:"5px 14px", fontSize:".68rem", fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", transition:"all .25s", fontFamily:"'JetBrains Mono',monospace" }}>{v}</button>
           ))}
         </div>
-        <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".72rem", color:"#333", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#333"}>github ↗</a>
+        <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".72rem", color:"#333", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#333"}>github â†—</a>
       </nav>
 
       {/* HERO */}
@@ -169,7 +169,7 @@ export default function Portfolio() {
             {roleText}<span style={{ display:"inline-block", width:2, height:"1.1em", background:MINT, marginLeft:2, verticalAlign:"text-bottom", animation:"blink 1s step-end infinite" }} />
           </div>
           <p style={{ fontSize:"clamp(.85rem,1.6vw,.95rem)", color:"#555", lineHeight:1.8, maxWidth:520, margin:"0 0 12px", ...show(.6) }}>Building ML systems, data pipelines, and regulatory AI platforms.<br/>Combining financial domain expertise with production-grade data science.</p>
-          <div style={{ fontSize:".82rem", fontWeight:600, color:"#888", marginBottom:40, ...show(.7) }}><span style={{ color:"#aaa" }}>Data Scientist &amp; Analytics Engineer</span> — Sydney, NSW<br/>UTS Master of Data Science (Distinction) + Master of Professional Accounting</div>
+          <div style={{ fontSize:".82rem", fontWeight:600, color:"#888", marginBottom:40, ...show(.7) }}><span style={{ color:"#aaa" }}>Data Scientist &amp; Analytics Engineer</span> â€” Sydney, NSW<br/>UTS Master of Data Science (Distinction) + Master of Professional Accounting</div>
           <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:48, ...show(.8) }}>
             {[["View Resume","primary"],["See Projects","ghost"]].map(([label,type]) => (
               <a key={label} href="#" onClick={e=>{e.preventDefault();if(label==="See Projects")document.getElementById("projects")?.scrollIntoView({behavior:"smooth"});}} style={{ fontFamily:"'Inter',sans-serif", fontSize:".78rem", fontWeight:600, letterSpacing:".06em", borderRadius:4, padding:"12px 28px", textDecoration:"none", cursor:"pointer", transition:"all .25s", display:"inline-block", ...(type==="primary" ? { color:MINT, background:"transparent", border:"1px solid rgba(100,255,218,.35)" } : { color:"#555", background:"transparent", border:"1px solid rgba(255,255,255,.1)" }) }} onMouseEnter={e=>{if(type==="primary"){e.target.style.background="rgba(100,255,218,.07)";e.target.style.borderColor="rgba(100,255,218,.7)";e.target.style.boxShadow="0 0 20px rgba(100,255,218,.12)";e.target.style.transform="translateY(-2px)"}else{e.target.style.color="#aaa";e.target.style.borderColor="rgba(255,255,255,.22)";e.target.style.transform="translateY(-2px)"}}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.borderColor=type==="primary"?"rgba(100,255,218,.35)":"rgba(255,255,255,.1)";e.target.style.boxShadow="none";e.target.style.transform="none";e.target.style.color=type==="primary"?MINT:"#555"}}>{label}</a>
@@ -196,7 +196,7 @@ export default function Portfolio() {
       <section id="projects" style={{ padding:"96px clamp(24px,5vw,64px)" }}>
         <div style={{ maxWidth:1060, margin:"0 auto" }}>
           <Reveal>
-            <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".68rem", color:MINT, letterSpacing:".14em", textTransform:"uppercase", marginBottom:20 }}>// projects — {view==="recruiter"?"business view":"engineering view"}</div>
+            <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".68rem", color:MINT, letterSpacing:".14em", textTransform:"uppercase", marginBottom:20 }}>// projects â€” {view==="recruiter"?"business view":"engineering view"}</div>
             <h2 style={{ fontSize:"clamp(1.8rem,3.5vw,2.6rem)", fontWeight:800, letterSpacing:"-.025em", color:"#fff", margin:"0 0 12px", lineHeight:1.15 }}>Seven end-to-end<br/><span style={{ color:"#222" }}>systems.</span></h2>
             <p style={{ fontSize:".86rem", color:"#444", lineHeight:1.7, maxWidth:480 }}>Each spans data ingestion, modelling, and deployment. Toggle view to filter by audience.</p>
           </Reveal>
@@ -231,7 +231,7 @@ export default function Portfolio() {
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {[["github.com/fahadamjad009","https://github.com/fahadamjad009"],["tableau public","https://public.tableau.com/app/profile/fahad.amjad2750"],["linkedin","https://linkedin.com/in/fahad-amjad009"]].map(([label,url])=>(
-                  <a key={label} href={url} target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".75rem", color:"#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#2a2a2a"}>{label} ↗</a>
+                  <a key={label} href={url} target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".75rem", color:"#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#2a2a2a"}>{label} â†—</a>
                 ))}
               </div>
             </div>
@@ -240,8 +240,8 @@ export default function Portfolio() {
       </section>
 
       <footer style={{ padding:"20px clamp(24px,5vw,64px)", borderTop:"1px solid #0f0f0f", display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
-        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>FAHAD AMJAD · SYDNEY</span>
-        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>DATA SCIENTIST · AI ENGINEER · 2026</span>
+        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>FAHAD AMJAD Â· SYDNEY</span>
+        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>DATA SCIENTIST Â· AI ENGINEER Â· 2026</span>
       </footer>
 
       <style>{`
@@ -254,3 +254,4 @@ export default function Portfolio() {
     </div>
   );
 }
+
