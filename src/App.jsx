@@ -93,7 +93,7 @@ function ProjectCard({ project, index }) {
         {project.stack.map(s => <span key={s} style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".6rem", color: hov ? "#555" : "#333", background:"#111", border:"1px solid " + (hov?"#2a2a2a":"#1e1e1e"), borderRadius:3, padding:"3px 8px", transition:"color .2s,border-color .2s" }}>{s}</span>)}
       </div>
       <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".68rem", color: hov ? "#64FFDA" : "#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s", display:"flex", alignItems:"center", gap:5, marginTop:2 }}>
-        â†— view on github
+        ↗ view on github
       </a>
     </div>
   );
@@ -155,7 +155,7 @@ export default function Portfolio() {
             <button key={v} onClick={() => setView(v)} style={{ background: view===v ? "rgba(100,255,218,.12)" : "transparent", color: view===v ? MINT : "#555", border: view===v ? "1px solid rgba(100,255,218,.25)" : "1px solid transparent", cursor:"pointer", borderRadius:36, padding:"5px 14px", fontSize:".68rem", fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", transition:"all .25s", fontFamily:"'JetBrains Mono',monospace" }}>{v}</button>
           ))}
         </div>
-        <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".72rem", color:"#333", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#333"}>github â†—</a>
+        <a href="https://github.com/fahadamjad009" target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".72rem", color:"#333", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#333"}>github ↗</a>
       </nav>
 
       {/* HERO */}
@@ -231,7 +231,7 @@ export default function Portfolio() {
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {[["github.com/fahadamjad009","https://github.com/fahadamjad009"],["tableau public","https://public.tableau.com/app/profile/fahad.amjad2750"],["linkedin","https://linkedin.com/in/fahad-amjad009"]].map(([label,url])=>(
-                  <a key={label} href={url} target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".75rem", color:"#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#2a2a2a"}>{label} â†—</a>
+                  <a key={label} href={url} target="_blank" rel="noreferrer" style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".75rem", color:"#2a2a2a", textDecoration:"none", letterSpacing:".04em", transition:"color .2s" }} onMouseEnter={e=>e.target.style.color=MINT} onMouseLeave={e=>e.target.style.color="#2a2a2a"}>{label} ↗</a>
                 ))}
               </div>
             </div>
@@ -254,4 +254,5 @@ export default function Portfolio() {
     </div>
   );
 }
+
 
