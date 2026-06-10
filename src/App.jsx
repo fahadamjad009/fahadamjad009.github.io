@@ -240,8 +240,8 @@ export default function Portfolio() {
       </section>
 
       <footer style={{ padding:"20px clamp(24px,5vw,64px)", borderTop:"1px solid #0f0f0f", display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
-        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>FAHAD AMJAD Â· SYDNEY</span>
-        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>DATA SCIENTIST Â· AI ENGINEER Â· 2026</span>
+        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>FAHAD AMJAD · SYDNEY</span>
+        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".65rem", color:"#1a1a1a" }}>DATA SCIENTIST · AI ENGINEER · 2026</span>
       </footer>
 
       <style>{`
@@ -254,5 +254,6 @@ export default function Portfolio() {
     </div>
   );
 }
+
 
 
