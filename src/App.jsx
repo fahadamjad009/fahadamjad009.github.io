@@ -1,4 +1,4 @@
-﻿// Portfolio V2 â€” Black/Mint aesthetic matching fahadamjad009.github.io
+// Portfolio V2 â€” Black/Mint aesthetic matching fahadamjad009.github.io
 // Drop this into your src/App.jsx and add JetBrains Mono + Inter to index.html
 // <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -157,7 +157,7 @@ export default function Portfolio() {
 
       {/* NAV */}
       <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, padding:"0 clamp(24px,5vw,64px)", height:64, display:"flex", alignItems:"center", justifyContent:"space-between", background: scrollY>60 ? "rgba(10,10,10,.92)" : "transparent", backdropFilter: scrollY>60 ? "blur(20px)" : "none", borderBottom: scrollY>60 ? "1px solid rgba(100,255,218,.07)" : "none", transition:"all .4s" }}>
-        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".82rem", fontWeight:600, color:MINT, letterSpacing:".08em" }}>FAHAD</span>
+        <span />
         <div style={{ display:"flex", background:"rgba(100,255,218,.04)", border:"1px solid rgba(100,255,218,.12)", borderRadius:40, padding:3, gap:2 }}>
           {["recruiter","engineer"].map(v => (
             <button key={v} onClick={() => setView(v)} style={{ background: view===v ? "rgba(100,255,218,.12)" : "transparent", color: view===v ? MINT : "#555", border: view===v ? "1px solid rgba(100,255,218,.25)" : "1px solid transparent", cursor:"pointer", borderRadius:36, padding:"5px 14px", fontSize:".68rem", fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", transition:"all .25s", fontFamily:"'JetBrains Mono',monospace" }}>{v}</button>
@@ -172,7 +172,7 @@ export default function Portfolio() {
         <div style={{ position:"absolute", bottom:"-10%", right:"-5%", width:"min(500px,50vw)", height:"min(500px,50vw)", background:"radial-gradient(circle,rgba(100,255,218,.025) 0%,transparent 65%)", borderRadius:"50%", animation:"bB 26s ease-in-out infinite", pointerEvents:"none" }} />
         <div style={{ position:"relative", zIndex:1, maxWidth:800 }}>
           <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:".82rem", color:MINT, marginBottom:20, ...show(.1) }}>Hello, my name is</div>
-          <h1 style={{ fontSize:"clamp(3rem,9vw,7.5rem)", fontWeight:900, lineHeight:.95, letterSpacing:"-.04em", color:"#fff", margin:"0 0 28px", ...show(.2) }}>FAHAD<br/>AMJAD</h1>
+          <h1 style={{ fontSize:"clamp(2rem,6vw,4.5rem)", fontWeight:900, lineHeight:.95, letterSpacing:"-.04em", color:"#fff", margin:"0 0 28px", ...show(.2) }}>FAHAD</h1>
           <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"clamp(.9rem,2vw,1.15rem)", color:MINT, marginBottom:28, minHeight:"1.6em", ...show(.45) }}>
             {roleText}<span style={{ display:"inline-block", width:2, height:"1.1em", background:MINT, marginLeft:2, verticalAlign:"text-bottom", animation:"blink 1s step-end infinite" }} />
           </div>
