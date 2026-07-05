@@ -19,9 +19,10 @@ const PROJECTS = [
   { id:"fraud",   code:"// 13", name:"FinTech Fraud Detection",         cat:"FinTech · ML",             desc:"End-to-end fraud detection platform with XGBoost champion model. Cost-sensitive threshold optimisation, Platt scaling calibration, velocity features, merchant risk scores. FastAPI + Streamlit.",                                                                                             stack:["XGBoost","FastAPI","Streamlit","SHAP","scikit-learn"],                                   status:"Complete",    sc:"#64FFDA", link:"https://github.com/fahadamjad009/fintech-fraud-detection-platform",      r:true,  e:true  },
   { id:"churn",   code:"// 14", name:"Churn ML Benchmark",              cat:"Machine Learning",         desc:"Reproducible benchmarking pipeline comparing XGBoost, LightGBM, and Logistic Regression for customer churn. CLV-weighted business metrics, ROC/AUC comparison, SHAP drivers, campaign ROI simulator.",                                                                                      stack:["XGBoost","LightGBM","SHAP","Streamlit","scikit-learn"],                                  status:"Complete",    sc:"#64FFDA", link:"https://github.com/fahadamjad009/customer-churn-ml-benchmark",          r:false, e:true  },
   { id:"mining",  code:"// 15", name:"Mining Operations Analytics",     cat:"Industrial Analytics",     desc:"Predictive maintenance platform for mining equipment using telemetry data. SHAP explainability, KS drift detection, OEE benchmarking, NASA C-MAPSS benchmark. Deployed Streamlit demo.",                                                                                                     stack:["Python","scikit-learn","SHAP","Streamlit","Predictive Analytics"],                       status:"Complete",    sc:"#64FFDA", link:"https://github.com/fahadamjad009/mining-operations-analytics-platform",  r:false, e:true  },
+  { id:"climate", code:"// 16", name:"Climate-Economic Risk Explorer",  cat:"Data Science · ML",        desc:"Risk analytics platform combining 10 years of weather, GDP, and disaster data across 30 global cities. XGBoost heat-anomaly (ROC-AUC 0.90) and disaster-risk classifiers (ROC-AUC 0.75), statsmodels ETS forecasting, live model scoring in an interactive pydeck/deck.gl Streamlit app.", stack:["Python","DuckDB","XGBoost","statsmodels","Streamlit","pydeck","Plotly"],                 status:"Deployed",    sc:"#64FFDA", link:"https://github.com/fahadamjad009/climate-economic-risk-explorer",     r:true,  e:true  },
 ];
 
-const STACK = ["Python","PyTorch","LangChain","FastAPI","PySpark","Streamlit","Tableau","Power BI","Azure ADF","Databricks","Delta Lake","DuckDB","Snowflake","dbt","Airflow","Docker","SHAP","Plotly","XGBoost","SQL","React","HuggingFace"];
+const STACK = ["Python","PyTorch","LangChain","FastAPI","PySpark","Streamlit","Tableau","Power BI","Azure ADF","Databricks","Delta Lake","DuckDB","Snowflake","dbt","Airflow","Docker","SHAP","Plotly","XGBoost","statsmodels","pydeck","SQL","React","HuggingFace"];
 const ROLES = ["Analytics Engineer.","Data Scientist.","AI Engineer.","RegTech Specialist.","ML Engineer."];
 
 function useInView(threshold = 0.1) {
@@ -192,7 +193,7 @@ export default function Portfolio() {
       {/* STATS */}
       <section ref={statsRef} style={{ borderTop:"1px solid #111", borderBottom:"1px solid #111", padding:"0 clamp(24px,5vw,64px)" }}>
         <div style={{ maxWidth:1060, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))" }}>
-          {[{value:15,label:"Portfolio Systems"},{value:2,label:"Graduate Degrees"},{value:18,label:"GitHub Repos",suffix:"+"},{value:5,label:"Deployed Apps"}].map((s,i)=>(
+          {[{value:16,label:"Portfolio Systems"},{value:2,label:"Graduate Degrees"},{value:18,label:"GitHub Repos",suffix:"+"},{value:6,label:"Deployed Apps"}].map((s,i)=>(
             <Reveal key={s.label} delay={i*.08}><StatCard {...s} active={statsInView} /></Reveal>
           ))}
         </div>
