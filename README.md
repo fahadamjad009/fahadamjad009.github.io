@@ -16,6 +16,7 @@
 ## 🌐 Live Site
 
 **[fahadamjad009.github.io](https://fahadamjad009.github.io)**
+fitness app - https://fahadamjad009.github.io/body-planner/
 
 ---
 
