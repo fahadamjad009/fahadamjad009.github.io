@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Readloud</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f4f1; --page: #ffffff; --border: #e5e2d9; --ink: #1e1d1b; --muted: #8a8578;
+    --accent: #2f6fed; --accent-soft: rgba(47,111,237,0.14); --sentence-tint: #eef3fe;
+    --pill-bg: rgba(30,29,27,0.92);
+  }
+  body.dark-mode {
+    --bg: #16181d; --page: #1d2027; --border: #2c303a; --ink: #e7e6e2; --muted: #8b93a3;
+    --accent: #6fa3ff; --accent-soft: rgba(111,163,255,0.18); --sentence-tint: #232734;
+    --pill-bg: rgba(255,255,255,0.9);
+  }
+  body.dark-mode .pill-btn { color: #16181d; }
+  body.dark-mode .pill-btn:hover { background: rgba(0,0,0,0.08); }
+  body.dark-mode .pill-btn.play-pause { background: #16181d; color: #fff; }
+  body.dark-mode .settings-panel, body.dark-mode .icon-btn, body.dark-mode select, body.dark-mode textarea { background: var(--page); color: var(--ink); }
+  body.dark-mode .settings-close, body.dark-mode .voice-item:hover, body.dark-mode .sentence:hover { background: #262a33; }
+  body.dark-mode .speed-stepper button { background: var(--page); color: var(--ink); border-color: var(--border); }
+  body { transition: background 0.3s ease, color 0.3s ease; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  /* ---- Minimal top bar ---- */
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 18px; background: var(--bg); flex-shrink: 0; }
+  .topbar .brand { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: var(--accent); }
+  .topbar input[type="file"] { font-size: 12px; max-width: 200px; }
+  .icon-btn { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+  .icon-btn:hover { background: #f0efe9; }
+
+  /* ---- Page ---- */
+  .stage { flex: 1; overflow: hidden; display: flex; justify-content: center; padding: 12px 24px 100px; min-height: 0; }
+  .page { background: var(--page); width: 100%; max-width: 720px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow-y: auto; padding: 48px 60px; height: 100%; }
+  .page.empty { display: flex; align-items: center; justify-content: center; text-align: center; }
+  .empty-msg { font-family: Georgia, serif; font-style: italic; color: #b3ac9a; font-size: 16px; line-height: 1.6; }
+  #readerText { font-family: Georgia, "Times New Roman", serif; font-size: 20px; line-height: 1.95; color: var(--ink); white-space: pre-wrap; }
+  .sentence { border-radius: 5px; transition: background 0.3s ease; cursor: pointer; }
+  .sentence:hover { background: #f7f5ef; }
+  .sentence.current-sentence { background: var(--sentence-tint); }
+  .word { border-radius: 3px; padding: 0 1px; transition: background 0.15s ease; }
+  .word.active-word { background: var(--accent-soft); box-shadow: 0 2px 0 var(--accent); }
+  .paste-row { padding: 6px 24px 10px; flex-shrink: 0; }
+  .paste-row textarea { width: 100%; font-size: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-family: inherit; resize: vertical; background: #fff; color: var(--ink); }
+
+  /* ---- Text-selection "Speak" popup ---- */
+  .speak-popup {
+    position: fixed; z-index: 80; background: #1e1d1b; color: #fff; border-radius: 8px;
+    padding: 8px 4px; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+    font-size: 13px; font-weight: 600;
+  }
+  .speak-popup.show { display: flex; }
+  .speak-popup button { background: transparent; border: none; color: #fff; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 6px; }
+  .speak-popup button:hover { background: rgba(255,255,255,0.12); }
+
+  /* ---- Floating pill control bar ---- */
+  .pill-bar {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--pill-bg); backdrop-filter: blur(6px); border-radius: 30px;
+    padding: 8px 10px; display: flex; align-items: center; gap: 6px; z-index: 60;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .pill-bar.hidden { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
+  .pill-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #fff;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px;
+  }
+  .pill-btn:hover { background: rgba(255,255,255,0.14); }
+  .pill-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .pill-btn.play-pause { width: 46px; height: 46px; background: #fff; color: #1e1d1b; font-size: 17px; }
+  .pill-btn.play-pause:hover { background: #eee; }
+  .pill-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+
+  /* ---- Settings panel ---- */
+  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); display: none; align-items: center; justify-content: center; z-index: 90; }
+  .settings-overlay.show { display: flex; }
+  .settings-panel { background: #fff; width: 360px; max-height: 82vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .settings-header h2 { font-size: 16px; margin: 0; font-weight: 700; }
+  .settings-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; cursor: pointer; font-size: 15px; }
+  .settings-body { overflow-y: auto; padding: 14px 18px 24px; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-of-type { border-bottom: none; }
+  .settings-label { font-size: 14px; font-weight: 600; }
+  .settings-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: #ddd8c8; border-radius: 14px; cursor: pointer; transition: background 0.2s ease; }
+  .toggle-slider::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  .speed-stepper { display: flex; align-items: center; gap: 10px; }
+  .speed-stepper button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 15px; }
+  .speed-dots { display: flex; gap: 5px; align-items: center; }
+  .speed-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: #ddd8c8; }
+  .speed-dots .dot.active { background: var(--accent); width: 8px; height: 8px; }
+  .speed-num { font-size: 13px; font-weight: 700; min-width: 26px; text-align: center; }
+
+  .voice-group { margin-top: 6px; }
+  .voice-group-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .voice-group-header .count { color: var(--muted); font-weight: 500; }
+  .voice-group-header .chev { transition: transform 0.2s ease; color: var(--muted); }
+  .voice-group.open .voice-group-header .chev { transform: rotate(90deg); }
+  .voice-list { display: none; padding-left: 4px; }
+  .voice-group.open .voice-list { display: block; }
+  .voice-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 6px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .voice-item:hover { background: #f7f5ef; }
+  .voice-item.selected { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .voice-item .badge { font-size: 9px; padding: 1px 6px; border-radius: 8px; font-weight: 700; margin-left: 6px; }
+  .badge.kokoro { background: #e8f3ea; color: #2f7a43; }
+  .badge.system { background: #f2eee0; color: #8a7a3f; }
+  .status-line { font-size: 11px; color: var(--muted); padding: 10px 18px 0; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">Readloud</div>
+    <input type="file" id="fileInput" accept=".pdf,.txt">
+    <button class="icon-btn" id="settingsBtn" title="Settings">&#9881;</button>
+  </div>
+  <div class="status-line" id="statusLine">Load a file, then select any text and choose "Speak" \u2014 or use the play bar below.</div>
+
+  <div class="stage">
+    <div class="page empty" id="pageEl">
+      <div class="empty-msg" id="emptyMsg">Your book will appear here \u2014<br>select any passage and choose "Speak" to begin.</div>
+      <div id="readerText" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="paste-row"><textarea id="pasteArea" rows="2" placeholder="Or paste text here..."></textarea></div>
+
+  <div class="speak-popup" id="speakPopup">
+    <button id="speakPopupBtn">&#9658; Speak</button>
+  </div>
+
+  <div class="pill-bar" id="pillBar">
+    <button class="pill-btn" id="closeBtn" title="Stop">&#10005;</button>
+    <div class="pill-divider"></div>
+    <button class="pill-btn" id="prevBtn" title="Previous line">&#9664;&#9664;</button>
+    <button class="pill-btn play-pause" id="playPauseBtn" title="Play/Pause">&#9658;</button>
+    <button class="pill-btn" id="nextBtn" title="Next line">&#9654;&#9654;</button>
+    <div class="pill-divider"></div>
+    <button class="pill-btn" id="pillSettingsBtn" title="Settings">&#8942;</button>
+  </div>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="settings-close" id="settingsCloseBtn">&#10005;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Enable Read Aloud Tracking</div>
+            <div class="settings-sub">Highlight each word/line as it's spoken</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="trackingToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Dark Mode</div>
+          <label class="toggle">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-row">
+          <div class="settings-label">Speed</div>
+          <div class="speed-stepper">
+            <button id="speedDownBtn">&#8722;</button>
+            <div class="speed-dots" id="speedDots"></div>
+            <span class="speed-num" id="speedNum">1.0x</span>
+            <button id="speedUpBtn">&#43;</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Reading style</div>
+          </div>
+          <select id="styleSelect" style="border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:12px;">
+            <option value="natural">Natural</option>
+            <option value="wizard">Weathered Wizard</option>
+          </select>
+        </div>
+
+        <div style="margin-top:6px;">
+          <div class="settings-label" style="margin-bottom:4px;">Select Voice</div>
+          <div id="voiceGroups"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+let pdfSupportAvailable = false;
+try {
+  if (typeof pdfjsLib !== "undefined") {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    pdfSupportAvailable = true;
+  }
+} catch (e) {
+  console.error("pdf.js failed to initialize:", e);
+}
+const KOKORO_API = "http://127.0.0.1:8765";
+
+const fileInput = document.getElementById('fileInput');
+const pasteArea = document.getElementById('pasteArea');
+const statusLine = document.getElementById('statusLine');
+const pageEl = document.getElementById('pageEl');
+const emptyMsg = document.getElementById('emptyMsg');
+const readerText = document.getElementById('readerText');
+const settingsBtn = document.getElementById('settingsBtn');
+const pillSettingsBtn = document.getElementById('pillSettingsBtn');
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+const trackingToggle = document.getElementById('trackingToggle');
+const styleSelect = document.getElementById('styleSelect');
+const speedNum = document.getElementById('speedNum');
+const speedDots = document.getElementById('speedDots');
+const speedDownBtn = document.getElementById('speedDownBtn');
+const speedUpBtn = document.getElementById('speedUpBtn');
+const voiceGroups = document.getElementById('voiceGroups');
+const speakPopup = document.getElementById('speakPopup');
+const speakPopupBtn = document.getElementById('speakPopupBtn');
+const pillBar = document.getElementById('pillBar');
+const closeBtn = document.getElementById('closeBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const playPauseBtn = document.getElementById('playPauseBtn');
+
+let fullText = "";
+let wordSpans = [], sentenceEls = [], sentenceWordEls = [], chunks = [];
+let systemVoices = [];
+let fallbackTimers = [];
+let boundaryReceivedForChunk = false;
+let isPaused = false, isActivelyReading = false, isPlaying = false;
+let kokoroAvailable = false;
+let currentAudioEl = null;
+let currentChunkIdx = 0;
+let trackingEnabled = true;
+
+const SPEED_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4];
+let speedIdx = 0;
+
+const READING_STYLES = {
+  natural: { pitchMul: 1.0, rateMul: 1.0, pauseBoost: 1.0 },
+  wizard:  { pitchMul: 0.72, rateMul: 0.86, pauseBoost: 1.6 }
+};
+
+const KOKORO_VOICES = [
+  { id: "bf_emma",    label: "Emma \u2014 British Female",   lang_code: "b", whisper_lang: "en" },
+  { id: "bm_lewis",   label: "Lewis \u2014 British Male",    lang_code: "b", whisper_lang: "en" },
+  { id: "af_heart",   label: "Heart \u2014 American Female", lang_code: "a", whisper_lang: "en" },
+  { id: "am_michael", label: "Michael \u2014 American Male", lang_code: "a", whisper_lang: "en" },
+];
+const ACCENT_GROUPS = [
+  { label: 'Scottish',      test: v => v.lang.startsWith('en-GB') && /scot/i.test(v.name) },
+  { label: 'British',       test: v => v.lang.startsWith('en-GB') && !/scot/i.test(v.name) },
+  { label: 'Irish',         test: v => v.lang.startsWith('en-IE') },
+  { label: 'Australian',    test: v => v.lang.startsWith('en-AU') },
+  { label: 'American',      test: v => v.lang.startsWith('en-US') },
+  { label: 'Other English', test: v => v.lang.startsWith('en') }
+];
+
+let selectedVoiceValue = null; // "kokoro:bf_emma" or "system:VoiceName"
+
+// ---------- Settings panel open/close ----------
+function openSettings() { settingsOverlay.classList.add('show'); }
+function closeSettings() { settingsOverlay.classList.remove('show'); }
+settingsBtn.addEventListener('click', openSettings);
+pillSettingsBtn.addEventListener('click', openSettings);
+settingsCloseBtn.addEventListener('click', closeSettings);
+settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) closeSettings(); });
+
+trackingToggle.addEventListener('change', () => { trackingEnabled = trackingToggle.checked; if (!trackingEnabled) { clearWordHighlight(); clearSentenceHighlight(); } });
+
+const darkModeToggle = document.getElementById('darkModeToggle');
+darkModeToggle.addEventListener('change', () => {
+  document.body.classList.toggle('dark-mode', darkModeToggle.checked);
+});
+
+// ---------- Speed stepper ----------
+function renderSpeed() {
+  speedNum.textContent = SPEED_STEPS[speedIdx].toFixed(1) + "x";
+  speedDots.innerHTML = "";
+  SPEED_STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === speedIdx ? ' active' : '');
+    speedDots.appendChild(d);
+  });
+}
+speedDownBtn.addEventListener('click', () => { speedIdx = Math.max(0, speedIdx - 1); renderSpeed(); });
+speedUpBtn.addEventListener('click', () => { speedIdx = Math.min(SPEED_STEPS.length - 1, speedIdx + 1); renderSpeed(); });
+renderSpeed();
+function currentSpeed() { return SPEED_STEPS[speedIdx]; }
+
+// ---------- Voice list (grouped, collapsible, like the reference UI) ----------
+async function checkKokoroAndLoadVoices() {
+  try { const res = await fetch(KOKORO_API + "/health"); kokoroAvailable = res.ok; }
+  catch (e) { kokoroAvailable = false; }
+  buildVoiceGroups();
+}
+
+function buildVoiceGroups() {
+  voiceGroups.innerHTML = "";
+  systemVoices = speechSynthesis.getVoices();
+
+  const groups = [];
+  if (kokoroAvailable) {
+    groups.push({ label: "High Quality (Kokoro)", items: KOKORO_VOICES.map(v => ({
+      value: "kokoro:" + v.id, label: v.label, engine: "kokoro",
+      voiceId: v.id, langCode: v.lang_code, whisperLang: v.whisper_lang
+    })) });
+  }
+  const used = new Set();
+  ACCENT_GROUPS.forEach(g => {
+    const matches = systemVoices.filter(v => !used.has(v.name) && g.test(v));
+    if (matches.length === 0) return;
+    matches.forEach(v => used.add(v.name));
+    groups.push({ label: g.label, items: matches.map(v => ({
+      value: "system:" + v.name, label: v.name + (/natural|online/i.test(v.name) ? " \u2605" : ""), engine: "system", voiceName: v.name
+    })) });
+  });
+
+  groups.forEach((g, gi) => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'voice-group' + (gi === 0 ? ' open' : '');
+    const header = document.createElement('div');
+    header.className = 'voice-group-header';
+    header.innerHTML = `<span>${g.label}</span><span><span class="count">${g.items.length}</span> <span class="chev">&#8250;</span></span>`;
+    header.addEventListener('click', () => groupEl.classList.toggle('open'));
+    groupEl.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'voice-list';
+    g.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'voice-item';
+      row.dataset.value = item.value;
+      row.innerHTML = `<span>${item.label}</span><span class="badge ${item.engine}">${item.engine === 'kokoro' ? 'Kokoro' : 'System'}</span>`;
+      row.addEventListener('click', () => selectVoice(item));
+      list.appendChild(row);
+    });
+    groupEl.appendChild(list);
+    voiceGroups.appendChild(groupEl);
+  });
+
+  // default selection: first kokoro voice if available, else first system voice
+  if (!selectedVoiceValue && groups.length > 0 && groups[0].items.length > 0) {
+    selectVoice(groups[0].items[0]);
+  }
+  updateVoiceSelectionUI();
+
+  statusLine.textContent = kokoroAvailable
+    ? "Kokoro server connected \u2014 select any text and choose \"Speak\", or use the play bar."
+    : "Kokoro server not running \u2014 using Windows voices only. Select text and choose \"Speak\" to begin.";
+}
+speechSynthesis.onvoiceschanged = buildVoiceGroups;
+
+let selectedVoiceMeta = null;
+function selectVoice(item) {
+  selectedVoiceValue = item.value;
+  selectedVoiceMeta = item;
+  updateVoiceSelectionUI();
+}
+function updateVoiceSelectionUI() {
+  document.querySelectorAll('.voice-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.value === selectedVoiceValue);
+  });
+}
+checkKokoroAndLoadVoices();
+
+// ---------- File loading ----------
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  statusLine.textContent = "Loading file...";
+  try {
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      if (!pdfSupportAvailable) {
+        statusLine.textContent = "PDF support failed to load (network/content-blocker issue) \u2014 try a .txt file or pasting text instead.";
+        return;
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(" ") + "\n\n";
+        statusLine.textContent = `Extracting page ${i}/${pdf.numPages}...`;
+      }
+      setText(text);
+    } else { setText(await file.text()); }
+    statusLine.textContent = "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+  } catch (err) {
+    console.error(err);
+    statusLine.textContent = "Couldn't read that file: " + err.message;
+  }
+});
+pasteArea.addEventListener('change', () => { if (pasteArea.value.trim()) { setText(pasteArea.value); statusLine.textContent = "Loaded."; } });
+
+function setText(text) {
+  fullText = text.trim().replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+  pageEl.classList.remove('empty');
+  emptyMsg.style.display = 'none';
+  readerText.style.display = 'block';
+  buildSpans();
+  buildChunks();
+}
+
+function buildSpans() {
+  readerText.innerHTML = "";
+  wordSpans = []; sentenceEls = []; sentenceWordEls = [];
+  const sentenceRegex = /[^.!?\n]+[.!?]*(\n+|\s+|$)/g;
+  let sMatch;
+  const frag = document.createDocumentFragment();
+  while ((sMatch = sentenceRegex.exec(fullText)) !== null) {
+    const sText = sMatch[0];
+    if (sText.trim().length === 0) continue;
+    const sSpan = document.createElement('span');
+    sSpan.className = 'sentence';
+    const sStart = sMatch.index, sEnd = sMatch.index + sText.length;
+    const thisSentenceWords = [];
+    const wordRegex = /\S+/g;
+    let wMatch, lastIdx = 0;
+    while ((wMatch = wordRegex.exec(sText)) !== null) {
+      if (wMatch.index > lastIdx) sSpan.appendChild(document.createTextNode(sText.slice(lastIdx, wMatch.index)));
+      const wSpan = document.createElement('span');
+      wSpan.className = 'word';
+      wSpan.textContent = wMatch[0];
+      sSpan.appendChild(wSpan);
+      wordSpans.push({ start: sStart + wMatch.index, end: sStart + wMatch.index + wMatch[0].length, el: wSpan });
+      thisSentenceWords.push(wSpan);
+      lastIdx = wMatch.index + wMatch[0].length;
+    }
+    if (lastIdx < sText.length) sSpan.appendChild(document.createTextNode(sText.slice(lastIdx)));
+    sSpan.dataset.idx = sentenceEls.length;
+    frag.appendChild(sSpan);
+    sentenceEls.push({ start: sStart, end: sEnd, el: sSpan });
+    sentenceWordEls.push(thisSentenceWords);
+  }
+  readerText.appendChild(frag);
+}
+function buildChunks() {
+  chunks = sentenceEls.map(s => ({ text: fullText.slice(s.start, s.end), startOffset: s.start }));
+  if (chunks.length === 0 && fullText.length > 0) chunks = [{ text: fullText, startOffset: 0 }];
+}
+
+// ---------- Text-selection "Speak" popup ----------
+document.addEventListener('mouseup', (e) => {
+  if (pillBar.contains(e.target) || settingsOverlay.contains(e.target) || speakPopup.contains(e.target)) return;
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !readerText.contains(sel.anchorNode)) { speakPopup.classList.remove('show'); return; }
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) { speakPopup.classList.remove('show'); return; }
+  speakPopup.style.left = (rect.left + rect.width / 2) + "px";
+  speakPopup.style.top = (rect.top - 44 + window.scrollY) + "px";
+  speakPopup.style.transform = "translateX(-50%)";
+  speakPopup.classList.add('show');
+  speakPopup.dataset.charStart = findCharOffsetOfNode(sel.anchorNode, sel.anchorOffset);
+});
+document.addEventListener('mousedown', (e) => {
+  if (!speakPopup.contains(e.target)) speakPopup.classList.remove('show');
+});
+
+function findCharOffsetOfNode(node, offsetWithinNode) {
+  // Walk the DOM to find which wordSpans element this selection point falls in, then return its absolute char start.
+  let el = node.nodeType === 3 ? node.parentElement : node;
+  const match = wordSpans.find(ws => ws.el === el);
+  if (match) return match.start;
+  // fallback: nearest word span by DOM order
+  return 0;
+}
+
+speakPopupBtn.addEventListener('click', () => {
+  const charStart = parseInt(speakPopup.dataset.charStart || "0", 10);
+  let idx = 0;
+  for (let i = 0; i < sentenceEls.length; i++) {
+    if (charStart >= sentenceEls[i].start && charStart < sentenceEls[i].end) { idx = i; break; }
+  }
+  speakPopup.classList.remove('show');
+  window.getSelection().removeAllRanges();
+  jumpToChunk(idx);
+});
+
+// ---------- Highlighting ----------
+function clearWordHighlight() { document.querySelectorAll('.word.active-word').forEach(el => el.classList.remove('active-word')); }
+function clearSentenceHighlight() { document.querySelectorAll('.sentence.current-sentence').forEach(el => el.classList.remove('current-sentence')); }
+function highlightWordEl(wEl, sEl) {
+  if (!trackingEnabled) return;
+  clearWordHighlight();
+  wEl.classList.add('active-word');
+  wEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  clearSentenceHighlight();
+  sEl.classList.add('current-sentence');
+}
+function highlightAtAbsoluteChar(absChar) {
+  if (!trackingEnabled) return;
+  for (const ws of wordSpans) {
+    if (absChar >= ws.start && absChar < ws.end) { clearWordHighlight(); ws.el.classList.add('active-word'); ws.el.scrollIntoView({ block: 'center', behavior: 'smooth' }); break; }
+  }
+  for (const s of sentenceEls) {
+    if (absChar >= s.start && absChar < s.end) { clearSentenceHighlight(); s.el.classList.add('current-sentence'); break; }
+  }
+}
+function clearFallbackTimers() { fallbackTimers.forEach(t => clearTimeout(t)); fallbackTimers = []; }
+function stopCurrentAudio() { if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl.ontimeupdate = null; currentAudioEl.onended = null; currentAudioEl = null; } }
+
+// ---------- Playback ----------
+let playGeneration = 0;
+
+function speakFromChunk(idx) {
+  if (idx >= chunks.length) { finishSpeaking(); return; }
+  currentChunkIdx = idx;
+  const myGeneration = ++playGeneration;
+  stopCurrentAudio();
+  speechSynthesis.cancel();
+  clearFallbackTimers();
+  const chunk = chunks[idx];
+  if (!selectedVoiceMeta) { finishSpeaking(); return; }
+  if (selectedVoiceMeta.engine === "kokoro") speakChunkWithKokoro(idx, chunk, selectedVoiceMeta, myGeneration);
+  else speakChunkWithSystemVoice(idx, chunk, selectedVoiceMeta, myGeneration);
+}
+
+async function speakChunkWithKokoro(idx, chunk, meta, myGeneration) {
+  const style = READING_STYLES[styleSelect.value] || READING_STYLES.natural;
+  const effectiveRate = Math.min(4, Math.max(0.4, currentSpeed() * style.rateMul));
+  statusLine.textContent = "Reading... (generating audio)";
+  try {
+    const res = await fetch(KOKORO_API + "/synthesize", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: chunk.text, voice: meta.voiceId, lang_code: meta.langCode, speed: effectiveRate, whisper_lang: meta.whisperLang })
+    });
+    if (myGeneration !== playGeneration) return; // superseded while we were waiting on the network
+    if (!res.ok) throw new Error("Kokoro error " + res.status);
+    const data = await res.json();
+    if (myGeneration !== playGeneration) return; // superseded while we were waiting on the response body
+
+    const audio = new Audio("data:audio/wav;base64," + data.audio_base64);
+    currentAudioEl = audio;
+    const sentenceWords = sentenceWordEls[idx] || [];
+    const sEl = sentenceEls[idx] ? sentenceEls[idx].el : null;
+    const returnedWords = data.words || [];
+    audio.ontimeupdate = () => {
+      if (myGeneration !== playGeneration) return;
+      if (!returnedWords.length || !sEl) return;
+      const t = audio.currentTime;
+      for (let i = 0; i < returnedWords.length; i++) {
+        if (t >= returnedWords[i].start && t < returnedWords[i].end) {
+          const wEl = sentenceWords[Math.min(i, sentenceWords.length - 1)];
+          if (wEl && !wEl.classList.contains('active-word')) highlightWordEl(wEl, sEl);
+          break;
+        }
+      }
+    };
+    audio.onended = () => {
+      if (myGeneration !== playGeneration) return;
+      currentAudioEl = null;
+      if (!isPaused) speakFromChunk(idx + 1);
+    };
+    audio.onerror = () => {
+      if (myGeneration !== playGeneration) return;
+      currentAudioEl = null;
+      speakFromChunk(idx + 1);
+    };
+    statusLine.textContent = "Reading...";
+    await audio.play();
+  } catch (err) {
+    if (myGeneration !== playGeneration) return;
+    console.error(err);
+    statusLine.textContent = "Kokoro unavailable \u2014 using a system voice for this line.";
+    const fallback = findAnySystemMeta();
+    if (fallback) speakChunkWithSystemVoice(idx, chunk, fallback, myGeneration); else finishSpeaking();
+  }
+}
+function findAnySystemMeta() {
+  const el = document.querySelector('.voice-item .badge.system');
+  if (!el) return null;
+  const row = el.closest('.voice-item');
+  const name = row.dataset.value.replace('system:', '');
+  return { engine: 'system', voiceName: name };
+}
+function speakChunkWithSystemVoice(idx, chunk, meta, myGeneration) {
+  const style = READING_STYLES[styleSelect.value] || READING_STYLES.natural;
+  const effectiveRate = Math.min(4, Math.max(0.4, currentSpeed() * style.rateMul));
+  const utterance = new SpeechSynthesisUtterance(chunk.text);
+  const selectedVoice = systemVoices.find(v => v.name === meta.voiceName);
+  if (selectedVoice) { utterance.voice = selectedVoice; utterance.lang = selectedVoice.lang; }
+  utterance.rate = effectiveRate;
+  utterance.pitch = Math.min(2, Math.max(0, 1.0 * style.pitchMul));
+  boundaryReceivedForChunk = false;
+  clearFallbackTimers();
+  scheduleFallbackForChunk(chunk, effectiveRate, style.pauseBoost);
+  utterance.onboundary = (event) => {
+    if (myGeneration !== playGeneration) return;
+    if (event.name === 'word' || event.name === undefined) {
+      boundaryReceivedForChunk = true; clearFallbackTimers();
+      highlightAtAbsoluteChar(chunk.startOffset + event.charIndex);
+    }
+  };
+  utterance.onend = () => {
+    if (myGeneration !== playGeneration) return;
+    clearFallbackTimers();
+    if (!isPaused) speakFromChunk(idx + 1);
+  };
+  utterance.onerror = () => {
+    if (myGeneration !== playGeneration) return;
+    clearFallbackTimers();
+    speakFromChunk(idx + 1);
+  };
+  speechSynthesis.speak(utterance);
+}
+function scheduleFallbackForChunk(chunk, effectiveRate, pauseBoost) {
+  const words = [];
+  const wordRegex = /\S+/g;
+  let m;
+  while ((m = wordRegex.exec(chunk.text)) !== null) words.push({ absStart: chunk.startOffset + m.index, len: m[0].length, text: m[0] });
+  if (words.length === 0) return;
+  const charsPerSecond = 13 * effectiveRate;
+  let cursor = 0;
+  words.forEach(w => {
+    let wordDuration = Math.max(0.12, w.len / charsPerSecond);
+    if (/[,;:]$/.test(w.text)) wordDuration += 0.10 * pauseBoost;
+    if (/[.!?]$/.test(w.text)) wordDuration += 0.22 * pauseBoost;
+    const t = setTimeout(() => { if (!boundaryReceivedForChunk) highlightAtAbsoluteChar(w.absStart); }, cursor * 1000);
+    fallbackTimers.push(t);
+    cursor += wordDuration;
+  });
+}
+function finishSpeaking() {
+  clearFallbackTimers(); stopCurrentAudio(); clearWordHighlight(); clearSentenceHighlight();
+  isPlaying = false; isPaused = false; isActivelyReading = false;
+  playPauseBtn.innerHTML = "&#9658;";
+  statusLine.textContent = "Finished.";
+}
+
+function jumpToChunk(idx) {
+  stopCurrentAudio(); speechSynthesis.cancel(); clearFallbackTimers();
+  isPaused = false; isPlaying = true; isActivelyReading = true;
+  playPauseBtn.innerHTML = "&#10074;&#10074;";
+  speakFromChunk(idx);
+  statusLine.textContent = "Reading...";
+}
+
+// ---------- Pill bar controls ----------
+playPauseBtn.addEventListener('click', () => {
+  if (!fullText) { statusLine.textContent = "Load a file or paste text first."; return; }
+  if (isPlaying && !isPaused) {
+    isPaused = true;
+    if (currentAudioEl) currentAudioEl.pause(); else { speechSynthesis.pause(); clearFallbackTimers(); }
+    playPauseBtn.innerHTML = "&#9658;";
+    statusLine.textContent = "Paused.";
+  } else if (isPaused) {
+    isPaused = false;
+    if (currentAudioEl) currentAudioEl.play(); else speechSynthesis.resume();
+    playPauseBtn.innerHTML = "&#10074;&#10074;";
+    statusLine.textContent = "Reading...";
+  } else {
+    jumpToChunk(currentChunkIdx || 0);
+  }
+});
+closeBtn.addEventListener('click', () => {
+  stopCurrentAudio(); speechSynthesis.cancel(); clearFallbackTimers();
+  isPlaying = false; isPaused = false; isActivelyReading = false;
+  playPauseBtn.innerHTML = "&#9658;";
+  clearWordHighlight(); clearSentenceHighlight();
+  statusLine.textContent = "Stopped.";
+});
+prevBtn.addEventListener('click', () => { const idx = Math.max(0, currentChunkIdx - 1); jumpToChunk(idx); });
+nextBtn.addEventListener('click', () => { const idx = Math.min(chunks.length - 1, currentChunkIdx + 1); jumpToChunk(idx); });
+
+// ---------- Keyboard: arrows to skip, space to play/pause ----------
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+  if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {
+    if (!fullText || chunks.length === 0) return;
+    e.preventDefault();
+    const delta = e.code === 'ArrowDown' ? 1 : -1;
+    jumpToChunk(Math.max(0, Math.min(chunks.length - 1, currentChunkIdx + delta)));
+  } else if (e.code === 'Space') {
+    e.preventDefault();
+    playPauseBtn.click();
+  }
+});
+</script>
+</body>
+</html>
