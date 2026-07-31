@@ -16,8 +16,10 @@
 ## 🌐 Live Site
 
 **[fahadamjad009.github.io](https://fahadamjad009.github.io)**
-fitness app - https://fahadamjad009.github.io/body-planner/
 
+fitness app - (https://fahadamjad009.github.io/body-planner/)
+
+readaloud html - (https://fahadamjad009.github.io/readaloud.html)
 ---
 
 ## ✨ Features
