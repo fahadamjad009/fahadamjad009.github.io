@@ -132,19 +132,24 @@
     .icon-btn { width: 32px; height: 32px; font-size: 15px; }
     .status-line { font-size: 10px; padding: 6px 12px 0; }
 
-    .app-layout { flex-direction: column; }
-    .stage { padding: 8px; gap: 6px; }
+    .app-layout { flex-direction: column; min-height: 0; }
+    .stage { flex: 1; min-height: 0; padding: 8px; gap: 6px; }
     .page { padding: 22px 16px; border-radius: 4px; }
     #readerText { font-size: 17px; line-height: 1.8; }
     .page-nav-btn { padding: 8px 14px; font-size: 12px; }
 
     .sidebar {
-      width: 100%; max-height: 50vh; border-left: none; border-top: 1px solid var(--border);
-      transition: max-height 0.25s ease, opacity 0.2s ease;
+      width: 100%; flex-shrink: 0; max-height: none; border-left: none; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column;
     }
-    .sidebar.collapsed { max-height: 0; opacity: 0; width: 100%; overflow: hidden; border-top: none; }
+    /* Playback controls always stay visible on mobile — only the settings list below collapses. */
+    .sidebar .settings-body {
+      max-height: 45vh; overflow-y: auto;
+      transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+    }
+    .sidebar.collapsed .settings-body { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
 
-    .playback-controls { padding: 12px; }
+    .playback-controls { padding: 12px; flex-shrink: 0; }
     .pill-btn { width: 44px; height: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .pill-btn.play-pause { width: 56px; height: 56px; }
 
@@ -318,6 +323,7 @@ function toggleSidebar() {
   sidebar.classList.toggle('collapsed');
   setTimeout(() => { if (fullText) setupPagination(); }, 280);
 }
+if (window.innerWidth <= 760) sidebar.classList.add('collapsed'); // start collapsed on phones
 settingsBtn.addEventListener('click', toggleSidebar);
 
 trackingToggle.addEventListener('change', () => { trackingEnabled = trackingToggle.checked; if (!trackingEnabled) { clearWordHighlight(); clearSentenceHighlight(); } });
@@ -432,15 +438,30 @@ fileInput.addEventListener('change', async (e) => {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let text = "";
+      let failedPages = 0;
       for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map(it => it.str).join(" ") + "\n\n";
+        try {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(it => it.str).join(" ") + "\n\n";
+        } catch (pageErr) {
+          console.error(`Page ${i} failed:`, pageErr);
+          failedPages++;
+        }
         statusLine.textContent = `Extracting page ${i}/${pdf.numPages}...`;
       }
+      if (text.trim().length === 0) {
+        statusLine.textContent = "No readable text found in this PDF \u2014 it's likely a scanned/image-only document (no selectable text), which this app can't extract from.";
+        return;
+      }
       setText(text);
-    } else { setText(await file.text()); }
-    statusLine.textContent = "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+      statusLine.textContent = failedPages > 0
+        ? `Loaded (${failedPages} page(s) couldn't be read and were skipped). Select any text and choose "Speak".`
+        : "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+    } else {
+      setText(await file.text());
+      statusLine.textContent = "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+    }
   } catch (err) {
     console.error(err);
     statusLine.textContent = "Couldn't read that file: " + err.message;
