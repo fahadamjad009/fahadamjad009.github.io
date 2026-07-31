@@ -394,6 +394,8 @@ let currentBookmarks = [];  // bookmarks for the currently loaded book
 
 // ---------- Library storage (IndexedDB) ----------
 // Stores: { id, title, fullText, lastChunkIdx, totalChunks, bookmarks:[{chunkIdx,label,savedAt}], dateAdded, dateLastOpened }
+// Safari/WebKit's IndexedDB is known to spuriously close its connection mid-session, especially
+// on iOS -- every call below detects that and reopens automatically instead of just failing.
 let libraryDB = null;
 function openLibraryDB() {
   return new Promise((resolve, reject) => {
@@ -402,48 +404,76 @@ function openLibraryDB() {
       const db = req.result;
       if (!db.objectStoreNames.contains("books")) db.createObjectStore("books", { keyPath: "id" });
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onclose = () => { console.warn("IndexedDB connection closed unexpectedly (Safari bug) -- will reopen on next use."); libraryDB = null; };
+      db.onversionchange = () => { try { db.close(); } catch (e) {} libraryDB = null; };
+      resolve(db);
+    };
     req.onerror = () => reject(req.error);
   });
 }
 async function ensureDB() { if (!libraryDB) libraryDB = await openLibraryDB(); return libraryDB; }
+async function reopenDB() { libraryDB = await openLibraryDB(); return libraryDB; }
+
+// Runs an IndexedDB operation; if the connection turns out to be stale (Safari's bug),
+// reopens it fresh and retries once before giving up.
+async function idbAttempt(runFn) {
+  const db = await ensureDB();
+  try {
+    return await runFn(db);
+  } catch (err) {
+    console.warn("IndexedDB call failed, reopening connection and retrying:", err);
+    try {
+      const freshDb = await reopenDB();
+      return await runFn(freshDb);
+    } catch (err2) {
+      console.error("IndexedDB retry also failed:", err2);
+      return null;
+    }
+  }
+}
 
 function computeBookId(file) { return `${file.name}::${file.size}`; }
 
 async function getBook(id) {
-  const db = await ensureDB();
-  return new Promise((resolve) => {
-    const tx = db.transaction("books", "readonly");
+  return idbAttempt((db) => new Promise((resolve, reject) => {
+    let tx;
+    try { tx = db.transaction("books", "readonly"); } catch (e) { reject(e); return; }
     const req = tx.objectStore("books").get(id);
     req.onsuccess = () => resolve(req.result || null);
-    req.onerror = () => resolve(null);
-  });
+    req.onerror = () => reject(req.error);
+  }));
 }
 async function putBook(record) {
-  const db = await ensureDB();
-  return new Promise((resolve) => {
-    const tx = db.transaction("books", "readwrite");
+  const result = await idbAttempt((db) => new Promise((resolve, reject) => {
+    let tx;
+    try { tx = db.transaction("books", "readwrite"); } catch (e) { reject(e); return; }
     tx.objectStore("books").put(record);
     tx.oncomplete = () => resolve(true);
-    tx.onerror = () => resolve(false);
-  });
+    tx.onerror = () => reject(tx.error);
+  }));
+  return result === true;
 }
 async function deleteBook(id) {
-  const db = await ensureDB();
-  return new Promise((resolve) => {
-    const tx = db.transaction("books", "readwrite");
+  const result = await idbAttempt((db) => new Promise((resolve, reject) => {
+    let tx;
+    try { tx = db.transaction("books", "readwrite"); } catch (e) { reject(e); return; }
     tx.objectStore("books").delete(id);
     tx.oncomplete = () => resolve(true);
-  });
+    tx.onerror = () => reject(tx.error);
+  }));
+  return result === true;
 }
 async function getAllBooks() {
-  const db = await ensureDB();
-  return new Promise((resolve) => {
-    const tx = db.transaction("books", "readonly");
+  const result = await idbAttempt((db) => new Promise((resolve, reject) => {
+    let tx;
+    try { tx = db.transaction("books", "readonly"); } catch (e) { reject(e); return; }
     const req = tx.objectStore("books").getAll();
     req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => resolve([]);
-  });
+    req.onerror = () => reject(req.error);
+  }));
+  return result || [];
 }
 
 let saveTimer;
