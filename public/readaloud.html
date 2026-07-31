@@ -2,7 +2,8 @@
 <html lang="en-GB">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Readloud</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -16,27 +17,35 @@
     --accent: #6fa3ff; --accent-soft: rgba(111,163,255,0.18); --sentence-tint: #232734;
     --pill-bg: rgba(255,255,255,0.9);
   }
-  body.dark-mode .pill-btn { color: #16181d; }
-  body.dark-mode .pill-btn:hover { background: rgba(0,0,0,0.08); }
-  body.dark-mode .pill-btn.play-pause { background: #16181d; color: #fff; }
-  body.dark-mode .settings-panel, body.dark-mode .icon-btn, body.dark-mode select, body.dark-mode textarea { background: var(--page); color: var(--ink); }
-  body.dark-mode .settings-close, body.dark-mode .voice-item:hover, body.dark-mode .sentence:hover { background: #262a33; }
+  body.dark-mode .icon-btn, body.dark-mode select, body.dark-mode textarea { background: var(--page); color: var(--ink); }
+  body.dark-mode .voice-item:hover, body.dark-mode .sentence:hover { background: #262a33; }
   body.dark-mode .speed-stepper button { background: var(--page); color: var(--ink); border-color: var(--border); }
   body { transition: background 0.3s ease, color 0.3s ease; }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  html, body { height: 100%; height: 100dvh; margin: 0; -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
   /* ---- Minimal top bar ---- */
-  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 18px; background: var(--bg); flex-shrink: 0; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 18px; padding-top: calc(10px + env(safe-area-inset-top)); background: var(--bg); flex-shrink: 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .topbar .brand { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: var(--accent); }
   .topbar input[type="file"] { font-size: 12px; max-width: 200px; }
-  .icon-btn { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+  .icon-btn { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: background 0.15s ease, transform 0.1s ease; }
   .icon-btn:hover { background: #f0efe9; }
+  .icon-btn:active { transform: scale(0.92); }
 
-  /* ---- Page ---- */
-  .stage { flex: 1; overflow: hidden; display: flex; justify-content: center; padding: 12px 24px 100px; min-height: 0; }
-  .page { background: var(--page); width: 100%; max-width: 720px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow-y: auto; padding: 48px 60px; height: 100%; }
+  /* ---- Main layout: reading page (left) + docked sidebar (right) ---- */
+  .app-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+  .stage { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px; min-height: 0; gap: 8px; }
+  .page-wrap { flex: 1; display: flex; justify-content: center; min-height: 0; }
+  .page-nav { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 4px 0 2px; }
+  .page-nav-btn { border: 1px solid var(--border); background: #fff; color: var(--ink); border-radius: 7px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; }
+  .page-nav-btn:hover { background: #f0efe9; }
+  .page-nav-btn:active { transform: scale(0.95); }
+  .page-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #pageIndicator { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 90px; text-align: center; }
+  body.dark-mode .page-nav-btn { background: #262a33; color: var(--ink); border-color: var(--border); }
+  body.dark-mode .page-nav-btn:hover { background: #2f3440; }
+  .page { background: var(--page); width: 100%; max-width: 900px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow-y: auto; padding: 44px 56px; height: 100%; }
   .page.empty { display: flex; align-items: center; justify-content: center; text-align: center; }
   .empty-msg { font-family: Georgia, serif; font-style: italic; color: #b3ac9a; font-size: 16px; line-height: 1.6; }
   #readerText { font-family: Georgia, "Times New Roman", serif; font-size: 20px; line-height: 1.95; color: var(--ink); white-space: pre-wrap; }
@@ -58,33 +67,31 @@
   .speak-popup button { background: transparent; border: none; color: #fff; padding: 6px 14px; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 6px; }
   .speak-popup button:hover { background: rgba(255,255,255,0.12); }
 
-  /* ---- Floating pill control bar ---- */
-  .pill-bar {
-    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
-    background: var(--pill-bg); backdrop-filter: blur(6px); border-radius: 30px;
-    padding: 8px 10px; display: flex; align-items: center; gap: 6px; z-index: 60;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.28);
-    transition: opacity 0.35s ease, transform 0.35s ease;
+  /* ---- Docked right sidebar: playback controls + settings, always visible ---- */
+  .sidebar {
+    width: 320px; flex-shrink: 0; background: var(--page); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; transition: width 0.25s ease, opacity 0.2s ease;
   }
-  .pill-bar.hidden { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
-  .pill-btn {
-    width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #fff;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px;
-  }
-  .pill-btn:hover { background: rgba(255,255,255,0.14); }
-  .pill-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .pill-btn.play-pause { width: 46px; height: 46px; background: #fff; color: #1e1d1b; font-size: 17px; }
-  .pill-btn.play-pause:hover { background: #eee; }
-  .pill-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+  .sidebar.collapsed { width: 0; opacity: 0; overflow: hidden; border-left: none; }
 
-  /* ---- Settings panel ---- */
-  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); display: none; align-items: center; justify-content: center; z-index: 90; }
-  .settings-overlay.show { display: flex; }
-  .settings-panel { background: #fff; width: 360px; max-height: 82vh; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .settings-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); }
-  .settings-header h2 { font-size: 16px; margin: 0; font-weight: 700; }
-  .settings-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0efe9; cursor: pointer; font-size: 15px; }
-  .settings-body { overflow-y: auto; padding: 14px 18px 24px; }
+  .playback-controls { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .pill-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: #fff; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .pill-btn:hover { background: #f0efe9; }
+  .pill-btn:active { transform: scale(0.9); }
+  .pill-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .pill-btn.play-pause { width: 52px; height: 52px; background: var(--accent); color: #fff; border: none; font-size: 18px; }
+  .pill-btn.play-pause:hover { opacity: 0.9; }
+  .pill-btn.play-pause.is-active { box-shadow: 0 0 0 4px var(--accent-soft); }
+  body.dark-mode .pill-btn { background: #262a33; color: var(--ink); border-color: var(--border); }
+  body.dark-mode .pill-btn:hover { background: #2f3440; }
+  body.dark-mode .pill-btn.play-pause { background: var(--accent); }
+
+  /* ---- Settings content inside sidebar ---- */
+  .settings-body { padding: 14px 18px 24px; }
   .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .settings-row:last-of-type { border-bottom: none; }
   .settings-label { font-size: 14px; font-weight: 600; }
@@ -118,6 +125,36 @@
   .badge.kokoro { background: #e8f3ea; color: #2f7a43; }
   .badge.system { background: #f2eee0; color: #8a7a3f; }
   .status-line { font-size: 11px; color: var(--muted); padding: 10px 18px 0; }
+  @media (max-width: 760px) {
+    .topbar { padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); gap: 8px; }
+    .topbar .brand { font-size: 15px; }
+    .topbar input[type="file"] { max-width: 130px; font-size: 11px; }
+    .icon-btn { width: 32px; height: 32px; font-size: 15px; }
+    .status-line { font-size: 10px; padding: 6px 12px 0; }
+
+    .app-layout { flex-direction: column; }
+    .stage { padding: 8px; gap: 6px; }
+    .page { padding: 22px 16px; border-radius: 4px; }
+    #readerText { font-size: 17px; line-height: 1.8; }
+    .page-nav-btn { padding: 8px 14px; font-size: 12px; }
+
+    .sidebar {
+      width: 100%; max-height: 50vh; border-left: none; border-top: 1px solid var(--border);
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+    }
+    .sidebar.collapsed { max-height: 0; opacity: 0; width: 100%; overflow: hidden; border-top: none; }
+
+    .playback-controls { padding: 12px; }
+    .pill-btn { width: 44px; height: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .pill-btn.play-pause { width: 56px; height: 56px; }
+
+    .paste-row { padding: 6px 14px calc(10px + env(safe-area-inset-bottom)); }
+    select, textarea, input[type="file"] { font-size: 16px; } /* prevents iOS auto-zoom-on-focus */
+    .voice-item { padding: 10px 6px; }
+  }
+  button, .icon-btn, .pill-btn, .page-nav-btn, .speed-stepper button {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
 </style>
 </head>
 <body>
@@ -125,39 +162,33 @@
   <div class="topbar">
     <div class="brand">Readloud</div>
     <input type="file" id="fileInput" accept=".pdf,.txt">
-    <button class="icon-btn" id="settingsBtn" title="Settings">&#9881;</button>
+    <button class="icon-btn" id="settingsBtn" title="Show/hide panel">&#9881;</button>
   </div>
-  <div class="status-line" id="statusLine">Load a file, then select any text and choose "Speak" \u2014 or use the play bar below.</div>
+  <div class="status-line" id="statusLine">Load a file, then select any text and choose "Speak" \u2014 or use the controls on the right.</div>
 
-  <div class="stage">
-    <div class="page empty" id="pageEl">
-      <div class="empty-msg" id="emptyMsg">Your book will appear here \u2014<br>select any passage and choose "Speak" to begin.</div>
-      <div id="readerText" style="display:none;"></div>
-    </div>
-  </div>
-
-  <div class="paste-row"><textarea id="pasteArea" rows="2" placeholder="Or paste text here..."></textarea></div>
-
-  <div class="speak-popup" id="speakPopup">
-    <button id="speakPopupBtn">&#9658; Speak</button>
-  </div>
-
-  <div class="pill-bar" id="pillBar">
-    <button class="pill-btn" id="closeBtn" title="Stop">&#10005;</button>
-    <div class="pill-divider"></div>
-    <button class="pill-btn" id="prevBtn" title="Previous line">&#9664;&#9664;</button>
-    <button class="pill-btn play-pause" id="playPauseBtn" title="Play/Pause">&#9658;</button>
-    <button class="pill-btn" id="nextBtn" title="Next line">&#9654;&#9654;</button>
-    <div class="pill-divider"></div>
-    <button class="pill-btn" id="pillSettingsBtn" title="Settings">&#8942;</button>
-  </div>
-
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-panel">
-      <div class="settings-header">
-        <h2>Settings</h2>
-        <button class="settings-close" id="settingsCloseBtn">&#10005;</button>
+  <div class="app-layout">
+    <div class="stage">
+      <div class="page-wrap">
+        <div class="page empty" id="pageEl">
+          <div class="empty-msg" id="emptyMsg">Your book will appear here \u2014<br>select any passage and choose "Speak" to begin.</div>
+          <div id="readerText" style="display:none;"></div>
+        </div>
       </div>
+      <div class="page-nav" id="pageNav" style="display:none;">
+        <button class="page-nav-btn" id="prevPageBtn">&larr; Prev</button>
+        <span id="pageIndicator">Page 1 of 1</span>
+        <button class="page-nav-btn" id="nextPageBtn">Next &rarr;</button>
+      </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+      <div class="playback-controls" id="pillBar">
+        <button class="pill-btn" id="closeBtn" title="Stop">&#10005;</button>
+        <button class="pill-btn" id="prevBtn" title="Previous line">&#9664;&#9664;</button>
+        <button class="pill-btn play-pause" id="playPauseBtn" title="Play/Pause (Space)">&#9658;</button>
+        <button class="pill-btn" id="nextBtn" title="Next line">&#9654;&#9654;</button>
+      </div>
+
       <div class="settings-body">
         <div class="settings-row">
           <div>
@@ -206,6 +237,12 @@
     </div>
   </div>
 
+  <div class="paste-row"><textarea id="pasteArea" rows="2" placeholder="Or paste text here..."></textarea></div>
+
+  <div class="speak-popup" id="speakPopup">
+    <button id="speakPopupBtn">&#9658; Speak</button>
+  </div>
+
 <script>
 let pdfSupportAvailable = false;
 try {
@@ -225,9 +262,7 @@ const pageEl = document.getElementById('pageEl');
 const emptyMsg = document.getElementById('emptyMsg');
 const readerText = document.getElementById('readerText');
 const settingsBtn = document.getElementById('settingsBtn');
-const pillSettingsBtn = document.getElementById('pillSettingsBtn');
-const settingsOverlay = document.getElementById('settingsOverlay');
-const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+const sidebar = document.getElementById('sidebar');
 const trackingToggle = document.getElementById('trackingToggle');
 const styleSelect = document.getElementById('styleSelect');
 const speedNum = document.getElementById('speedNum');
@@ -247,7 +282,6 @@ let fullText = "";
 let wordSpans = [], sentenceEls = [], sentenceWordEls = [], chunks = [];
 let systemVoices = [];
 let fallbackTimers = [];
-let boundaryReceivedForChunk = false;
 let isPaused = false, isActivelyReading = false, isPlaying = false;
 let kokoroAvailable = false;
 let currentAudioEl = null;
@@ -280,12 +314,11 @@ const ACCENT_GROUPS = [
 let selectedVoiceValue = null; // "kokoro:bf_emma" or "system:VoiceName"
 
 // ---------- Settings panel open/close ----------
-function openSettings() { settingsOverlay.classList.add('show'); }
-function closeSettings() { settingsOverlay.classList.remove('show'); }
-settingsBtn.addEventListener('click', openSettings);
-pillSettingsBtn.addEventListener('click', openSettings);
-settingsCloseBtn.addEventListener('click', closeSettings);
-settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) closeSettings(); });
+function toggleSidebar() {
+  sidebar.classList.toggle('collapsed');
+  setTimeout(() => { if (fullText) setupPagination(); }, 280);
+}
+settingsBtn.addEventListener('click', toggleSidebar);
 
 trackingToggle.addEventListener('change', () => { trackingEnabled = trackingToggle.checked; if (!trackingEnabled) { clearWordHighlight(); clearSentenceHighlight(); } });
 
@@ -422,7 +455,42 @@ function setText(text) {
   readerText.style.display = 'block';
   buildSpans();
   buildChunks();
+  requestAnimationFrame(() => requestAnimationFrame(setupPagination));
 }
+
+// ---------- Page numbers (discrete pages within the scrollable reading area) ----------
+const pageNav = document.getElementById('pageNav');
+const pageIndicator = document.getElementById('pageIndicator');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+let totalPages = 1;
+
+function setupPagination() {
+  const pageHeight = pageEl.clientHeight;
+  if (!pageHeight) return;
+  totalPages = Math.max(1, Math.ceil(pageEl.scrollHeight / pageHeight));
+  pageNav.style.display = totalPages > 1 ? 'flex' : 'none';
+  updatePageIndicator();
+}
+function currentPageNumber() {
+  const pageHeight = pageEl.clientHeight;
+  if (!pageHeight) return 1;
+  return Math.min(totalPages, Math.round(pageEl.scrollTop / pageHeight) + 1);
+}
+function updatePageIndicator() { pageIndicator.textContent = `Page ${currentPageNumber()} of ${totalPages}`; }
+function goToPage(n) {
+  const pageHeight = pageEl.clientHeight;
+  const clamped = Math.max(1, Math.min(totalPages, n));
+  pageEl.scrollTo({ top: (clamped - 1) * pageHeight, behavior: 'smooth' });
+}
+prevPageBtn.addEventListener('click', () => goToPage(currentPageNumber() - 1));
+nextPageBtn.addEventListener('click', () => goToPage(currentPageNumber() + 1));
+let pageScrollDebounce;
+pageEl.addEventListener('scroll', () => {
+  clearTimeout(pageScrollDebounce);
+  pageScrollDebounce = setTimeout(updatePageIndicator, 80);
+});
+window.addEventListener('resize', () => { if (fullText) setupPagination(); });
 
 function buildSpans() {
   readerText.innerHTML = "";
@@ -463,21 +531,52 @@ function buildChunks() {
 }
 
 // ---------- Text-selection "Speak" popup ----------
-document.addEventListener('mouseup', (e) => {
-  if (pillBar.contains(e.target) || settingsOverlay.contains(e.target) || speakPopup.contains(e.target)) return;
+function trySelectionInsideReader() {
   const sel = window.getSelection();
-  if (!sel || sel.isCollapsed || !readerText.contains(sel.anchorNode)) { speakPopup.classList.remove('show'); return; }
+  if (!sel || sel.isCollapsed || sel.rangeCount === 0) return null;
+  if (!readerText.contains(sel.anchorNode)) return null;
   const range = sel.getRangeAt(0);
   const rect = range.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) { speakPopup.classList.remove('show'); return; }
-  speakPopup.style.left = (rect.left + rect.width / 2) + "px";
-  speakPopup.style.top = (rect.top - 44 + window.scrollY) + "px";
+  if (rect.width === 0 && rect.height === 0) return null;
+  return { sel, rect };
+}
+
+function showSpeakPopupForSelection() {
+  const result = trySelectionInsideReader();
+  if (!result) { speakPopup.classList.remove('show'); return; }
+  const { sel, rect } = result;
+  const popupHalfWidth = 45;
+  let left = rect.left + rect.width / 2;
+  left = Math.max(popupHalfWidth + 8, Math.min(window.innerWidth - popupHalfWidth - 8, left));
+  let top = rect.top - 44 + window.scrollY;
+  if (top < 8) top = rect.bottom + 10 + window.scrollY; // flip below selection if too close to top
+  speakPopup.style.left = left + "px";
+  speakPopup.style.top = top + "px";
   speakPopup.style.transform = "translateX(-50%)";
   speakPopup.classList.add('show');
   speakPopup.dataset.charStart = findCharOffsetOfNode(sel.anchorNode, sel.anchorOffset);
+}
+
+document.addEventListener('mouseup', (e) => {
+  if (sidebar.contains(e.target) || speakPopup.contains(e.target)) return;
+  showSpeakPopupForSelection();
 });
 document.addEventListener('mousedown', (e) => {
   if (!speakPopup.contains(e.target)) speakPopup.classList.remove('show');
+});
+
+// Mobile: touch-based text selection (drag handles) doesn't fire mouseup reliably,
+// so watch selectionchange too, debounced until the user stops adjusting the selection.
+let selectionDebounce;
+document.addEventListener('selectionchange', () => {
+  clearTimeout(selectionDebounce);
+  selectionDebounce = setTimeout(() => {
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed && readerText.contains(sel.anchorNode)) showSpeakPopupForSelection();
+  }, 350);
+});
+document.addEventListener('touchstart', (e) => {
+  if (!speakPopup.contains(e.target) && !readerText.contains(e.target)) speakPopup.classList.remove('show');
 });
 
 function findCharOffsetOfNode(node, offsetWithinNode) {
@@ -605,14 +704,27 @@ function speakChunkWithSystemVoice(idx, chunk, meta, myGeneration) {
   if (selectedVoice) { utterance.voice = selectedVoice; utterance.lang = selectedVoice.lang; }
   utterance.rate = effectiveRate;
   utterance.pitch = Math.min(2, Math.max(0, 1.0 * style.pitchMul));
-  boundaryReceivedForChunk = false;
+
+  const utteranceStartTime = performance.now();
+  let calibratedCharsPerSecond = 13 * effectiveRate; // initial guess; refined once real timing signals arrive
+
   clearFallbackTimers();
-  scheduleFallbackForChunk(chunk, effectiveRate, style.pauseBoost);
+  scheduleFallbackForChunk(chunk, calibratedCharsPerSecond, style.pauseBoost, 0);
+
   utterance.onboundary = (event) => {
     if (myGeneration !== playGeneration) return;
     if (event.name === 'word' || event.name === undefined) {
-      boundaryReceivedForChunk = true; clearFallbackTimers();
+      const now = performance.now();
+      const elapsedSec = (now - utteranceStartTime) / 1000;
+      // Recalibrate our pace estimate from real observed timing so far in this sentence.
+      if (elapsedSec > 0.05 && event.charIndex > 0) {
+        calibratedCharsPerSecond = Math.max(3, event.charIndex / elapsedSec);
+      }
       highlightAtAbsoluteChar(chunk.startOffset + event.charIndex);
+      // Reschedule a safety net for the REST of the sentence using the calibrated pace,
+      // in case the browser's real timing signal goes quiet again (common with online voices).
+      clearFallbackTimers();
+      scheduleFallbackForChunk(chunk, calibratedCharsPerSecond, style.pauseBoost, event.charIndex);
     }
   };
   utterance.onend = () => {
@@ -627,50 +739,57 @@ function speakChunkWithSystemVoice(idx, chunk, meta, myGeneration) {
   };
   speechSynthesis.speak(utterance);
 }
-function scheduleFallbackForChunk(chunk, effectiveRate, pauseBoost) {
+function scheduleFallbackForChunk(chunk, charsPerSecond, pauseBoost, fromCharIndex) {
   const words = [];
   const wordRegex = /\S+/g;
   let m;
-  while ((m = wordRegex.exec(chunk.text)) !== null) words.push({ absStart: chunk.startOffset + m.index, len: m[0].length, text: m[0] });
+  while ((m = wordRegex.exec(chunk.text)) !== null) {
+    if (m.index < fromCharIndex) continue;
+    words.push({ absStart: chunk.startOffset + m.index, len: m[0].length, text: m[0] });
+  }
   if (words.length === 0) return;
-  const charsPerSecond = 13 * effectiveRate;
   let cursor = 0;
   words.forEach(w => {
     let wordDuration = Math.max(0.12, w.len / charsPerSecond);
     if (/[,;:]$/.test(w.text)) wordDuration += 0.10 * pauseBoost;
     if (/[.!?]$/.test(w.text)) wordDuration += 0.22 * pauseBoost;
-    const t = setTimeout(() => { if (!boundaryReceivedForChunk) highlightAtAbsoluteChar(w.absStart); }, cursor * 1000);
+    const t = setTimeout(() => { highlightAtAbsoluteChar(w.absStart); }, cursor * 1000);
     fallbackTimers.push(t);
     cursor += wordDuration;
   });
 }
+function setPlayPauseIcon(playing) {
+  playPauseBtn.innerHTML = playing ? "&#10074;&#10074;" : "&#9658;";
+  playPauseBtn.classList.toggle('is-active', playing);
+}
+
 function finishSpeaking() {
   clearFallbackTimers(); stopCurrentAudio(); clearWordHighlight(); clearSentenceHighlight();
   isPlaying = false; isPaused = false; isActivelyReading = false;
-  playPauseBtn.innerHTML = "&#9658;";
+  setPlayPauseIcon(false);
   statusLine.textContent = "Finished.";
 }
 
 function jumpToChunk(idx) {
   stopCurrentAudio(); speechSynthesis.cancel(); clearFallbackTimers();
   isPaused = false; isPlaying = true; isActivelyReading = true;
-  playPauseBtn.innerHTML = "&#10074;&#10074;";
+  setPlayPauseIcon(true);
   speakFromChunk(idx);
   statusLine.textContent = "Reading...";
 }
 
-// ---------- Pill bar controls ----------
+// ---------- Playback controls ----------
 playPauseBtn.addEventListener('click', () => {
   if (!fullText) { statusLine.textContent = "Load a file or paste text first."; return; }
   if (isPlaying && !isPaused) {
     isPaused = true;
     if (currentAudioEl) currentAudioEl.pause(); else { speechSynthesis.pause(); clearFallbackTimers(); }
-    playPauseBtn.innerHTML = "&#9658;";
+    setPlayPauseIcon(false);
     statusLine.textContent = "Paused.";
   } else if (isPaused) {
     isPaused = false;
     if (currentAudioEl) currentAudioEl.play(); else speechSynthesis.resume();
-    playPauseBtn.innerHTML = "&#10074;&#10074;";
+    setPlayPauseIcon(true);
     statusLine.textContent = "Reading...";
   } else {
     jumpToChunk(currentChunkIdx || 0);
@@ -679,7 +798,7 @@ playPauseBtn.addEventListener('click', () => {
 closeBtn.addEventListener('click', () => {
   stopCurrentAudio(); speechSynthesis.cancel(); clearFallbackTimers();
   isPlaying = false; isPaused = false; isActivelyReading = false;
-  playPauseBtn.innerHTML = "&#9658;";
+  setPlayPauseIcon(false);
   clearWordHighlight(); clearSentenceHighlight();
   statusLine.textContent = "Stopped.";
 });
