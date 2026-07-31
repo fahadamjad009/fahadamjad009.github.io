@@ -33,6 +33,22 @@
   .icon-btn:hover { background: #f0efe9; }
   .icon-btn:active { transform: scale(0.92); }
 
+  /* ---- Top-center pill navigation: Library + multilingual read-aloud pills ---- */
+  .pill-nav { flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 8px; }
+  .nav-pill {
+    display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: #fff; color: var(--ink); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+  .nav-pill:hover { background: #f0efe9; }
+  .nav-pill:active { transform: scale(0.95); }
+  .nav-pill-icon { font-size: 13px; line-height: 1; }
+  .nav-pill.lang-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  body.dark-mode .nav-pill { background: #262a33; border-color: var(--border); color: var(--ink); }
+  body.dark-mode .nav-pill:hover { background: #2f3440; }
+  body.dark-mode .nav-pill.lang-pill.active { background: var(--accent); color: #fff; }
+
   /* ---- Main layout: reading page (left) + docked sidebar (right) ---- */
   .app-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
   .stage { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px; min-height: 0; gap: 8px; }
@@ -179,6 +195,8 @@
     .topbar input[type="file"] { max-width: 120px; font-size: 11px; }
     .icon-btn { width: 32px; height: 32px; font-size: 15px; }
     .status-line { font-size: 10px; padding: 6px 12px 0; }
+    .pill-nav { width: 100%; order: 3; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 4px 2px; gap: 6px; }
+    .nav-pill { padding: 6px 10px; font-size: 11px; flex-shrink: 0; }
 
     .app-layout { flex-direction: column; min-height: 0; }
     .stage { flex: 1; min-height: 0; padding: 8px; gap: 6px; }
@@ -221,7 +239,14 @@
   <div class="topbar">
     <div class="brand">Readloud</div>
     <input type="file" id="fileInput" accept=".pdf,.txt">
-    <button class="icon-btn" id="libraryBtn" title="Library">&#128218;</button>
+    <div class="pill-nav" id="pillNav">
+      <button class="nav-pill" id="libraryBtn" title="Library"><span class="nav-pill-icon">&#128218;</span>Library</button>
+      <button class="nav-pill lang-pill" data-lang="es" title="Read aloud in Spanish"><span class="nav-pill-icon">&#127466;&#127480;</span>Spanish</button>
+      <button class="nav-pill lang-pill" data-lang="fr" title="Read aloud in French"><span class="nav-pill-icon">&#127467;&#127479;</span>French</button>
+      <button class="nav-pill lang-pill" data-lang="de" title="Read aloud in German"><span class="nav-pill-icon">&#127465;&#127466;</span>German</button>
+      <button class="nav-pill lang-pill" data-lang="ja" title="Read aloud in Japanese"><span class="nav-pill-icon">&#127471;&#127477;</span>Japanese</button>
+      <button class="nav-pill lang-pill" data-lang="id" title="Read aloud in Indonesian"><span class="nav-pill-icon">&#127311;&#127465;</span>Indonesian</button>
+    </div>
     <button class="icon-btn" id="settingsBtn" title="Show/hide panel">&#9881;</button>
   </div>
   <div class="status-line" id="statusLine">Load a file, then select any text and choose "Speak" \u2014 or use the controls on the right.</div>
@@ -390,6 +415,14 @@ let currentChunkIdx = 0;
 let trackingEnabled = true;
 let paragraphStarts = [];   // chunk indices that begin a new paragraph
 let currentBookId = null;   // identifies the book currently loaded, for library/resume/bookmarks
+let translationLang = null; // BCP-47-ish code ('es','fr','de','ja','id') when reading in another language, else null
+const LANGUAGE_META = {
+  es: { name: "Spanish",    bcp47: "es-ES" },
+  fr: { name: "French",     bcp47: "fr-FR" },
+  de: { name: "German",     bcp47: "de-DE" },
+  ja: { name: "Japanese",   bcp47: "ja-JP" },
+  id: { name: "Indonesian", bcp47: "id-ID" },
+};
 let currentBookmarks = [];  // bookmarks for the currently loaded book
 
 // ---------- Library storage (IndexedDB) ----------
@@ -1223,10 +1256,81 @@ function speakFromChunk(idx) {
   speechSynthesis.cancel();
   clearFallbackTimers();
   const chunk = chunks[idx];
+  if (translationLang) { speakChunkTranslated(idx, chunk, translationLang, myGeneration); return; }
   if (!selectedVoiceMeta) { finishSpeaking(); return; }
   if (selectedVoiceMeta.engine === "kokoro") speakChunkWithKokoro(idx, chunk, selectedVoiceMeta, myGeneration);
   else speakChunkWithSystemVoice(idx, chunk, selectedVoiceMeta, myGeneration);
 }
+
+// ---------- Multilingual translated read-aloud ----------
+async function translateText(text, targetLang) {
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+    if (!res.ok) throw new Error("Translation request failed: " + res.status);
+    const data = await res.json();
+    return data[0].map(seg => seg[0]).join("");
+  } catch (err) {
+    console.error("Translation failed:", err);
+    return null;
+  }
+}
+function findVoiceForLangPrefix(prefix) {
+  return systemVoices.find(v => v.lang.toLowerCase().startsWith(prefix)) || null;
+}
+async function speakChunkTranslated(idx, chunk, langCode, myGeneration) {
+  const meta = LANGUAGE_META[langCode];
+  clearSentenceHighlight();
+  if (sentenceEls[idx]) sentenceEls[idx].el.classList.add('current-sentence');
+  if (trackingEnabled && sentenceEls[idx]) sentenceEls[idx].el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  statusLine.textContent = `Translating to ${meta.name}...`;
+
+  const translated = await translateText(chunk.text, langCode);
+  if (myGeneration !== playGeneration) return;
+  if (!translated) {
+    statusLine.textContent = `Translation failed \u2014 check your internet connection and try again.`;
+    finishSpeaking();
+    return;
+  }
+
+  const style = READING_STYLES[styleSelect.value] || READING_STYLES.natural;
+  const effectiveRate = Math.min(4, Math.max(0.4, currentSpeed() * style.rateMul));
+  const utterance = new SpeechSynthesisUtterance(translated);
+  const voice = findVoiceForLangPrefix(langCode);
+  if (voice) { utterance.voice = voice; utterance.lang = voice.lang; }
+  else { utterance.lang = meta.bcp47; } // no matching installed voice found; let the browser pick its own default for this language
+  utterance.rate = effectiveRate;
+  utterance.pitch = Math.min(2, Math.max(0, 1.0 * style.pitchMul));
+
+  utterance.onend = () => {
+    if (myGeneration !== playGeneration) return;
+    if (!isPaused) speakFromChunk(idx + 1);
+  };
+  utterance.onerror = () => {
+    if (myGeneration !== playGeneration) return;
+    speakFromChunk(idx + 1);
+  };
+  statusLine.textContent = `Reading in ${meta.name}...` + (voice ? "" : ` (no ${meta.name} voice installed \u2014 using browser default)`);
+  speechSynthesis.speak(utterance);
+}
+
+// ---------- Language pill wiring ----------
+document.querySelectorAll('.lang-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const lang = pill.dataset.lang;
+    const wasActive = pill.classList.contains('active');
+    document.querySelectorAll('.lang-pill').forEach(p => p.classList.remove('active'));
+    if (wasActive) {
+      translationLang = null;
+      statusLine.textContent = "Back to original language.";
+    } else {
+      pill.classList.add('active');
+      translationLang = lang;
+      statusLine.textContent = `Reading will translate to ${LANGUAGE_META[lang].name}.`;
+    }
+    // If something is currently playing, re-read the current sentence in the new language right away.
+    if (isActivelyReading || isPlaying) jumpToChunk(currentChunkIdx);
+  });
+});
 
 async function speakChunkWithKokoro(idx, chunk, meta, myGeneration) {
   const style = READING_STYLES[styleSelect.value] || READING_STYLES.natural;
