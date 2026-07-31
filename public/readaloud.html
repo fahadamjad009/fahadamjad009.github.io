@@ -75,6 +75,54 @@
   .sidebar.collapsed { width: 0; opacity: 0; overflow: hidden; border-left: none; }
 
   .playback-controls { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .playback-controls.secondary-row { padding: 0 14px 14px; gap: 10px; }
+  .pill-btn.small { width: 32px; height: 32px; font-size: 12px; }
+  #bookmarkBtn.is-bookmarked { background: var(--accent); color: #fff; }
+  .library-item-title { font-weight: 600; font-size: 13px; }
+  .library-item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .library-progress-track { height: 3px; background: var(--border); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .library-progress-fill { height: 100%; background: var(--accent); }
+  .library-item-delete { font-size: 11px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 6px; }
+  .library-item-delete:hover { color: #c0392b; }
+  .bookmark-main { flex: 1; min-width: 0; }
+  .bookmark-book-title { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bookmark-snippet { font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---- Library card-grid view (Google-Drive style) ---- */
+  .library-view { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding: 8px 4px 20px; }
+  .library-view-header { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; }
+  .library-view-header h2 { margin: 0; font-size: 20px; font-family: Georgia, serif; }
+  .library-view-count { font-size: 13px; color: var(--muted); }
+  .library-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; padding: 0 8px; }
+  .library-card {
+    background: var(--page); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; display: flex; flex-direction: column;
+  }
+  .library-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.14); }
+  .library-card:active { transform: translateY(-1px) scale(0.98); }
+  .library-cover {
+    height: 130px; display: flex; align-items: center; justify-content: center; position: relative;
+    color: rgba(255,255,255,0.92); font-family: Georgia, serif; font-weight: 700; font-size: 13px;
+    text-align: center; padding: 14px; line-height: 1.3; overflow: hidden;
+  }
+  .library-cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%); }
+  .library-cover span { position: relative; z-index: 1; }
+  .library-card-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .library-card-title { font-size: 12.5px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .library-card-meta { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .library-card-progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .library-card-progress-fill { height: 100%; background: var(--accent); }
+  .library-card-delete {
+    position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,0.4); color: #fff; border: none; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .library-card:hover .library-card-delete { opacity: 1; }
+  .library-card-delete:hover { background: #c0392b; }
+  .library-empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--muted); font-family: Georgia, serif; font-style: italic; font-size: 15px; }
+
+  @keyframes bookmarkPulse { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  #bookmarkBtn.pulse { animation: bookmarkPulse 0.35s ease; }
   .pill-btn {
     width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: #fff; color: var(--ink);
     display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px;
@@ -128,7 +176,7 @@
   @media (max-width: 760px) {
     .topbar { padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); gap: 8px; }
     .topbar .brand { font-size: 15px; }
-    .topbar input[type="file"] { max-width: 130px; font-size: 11px; }
+    .topbar input[type="file"] { max-width: 120px; font-size: 11px; }
     .icon-btn { width: 32px; height: 32px; font-size: 15px; }
     .status-line { font-size: 10px; padding: 6px 12px 0; }
 
@@ -142,7 +190,7 @@
       width: 100%; flex-shrink: 0; max-height: none; border-left: none; border-top: 1px solid var(--border);
       display: flex; flex-direction: column;
     }
-    /* Playback controls always stay visible on mobile — only the settings list below collapses. */
+    /* Playback controls always stay visible on mobile \u2014 only the settings list below collapses. */
     .sidebar .settings-body {
       max-height: 45vh; overflow-y: auto;
       transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
@@ -150,12 +198,18 @@
     .sidebar.collapsed .settings-body { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
 
     .playback-controls { padding: 12px; flex-shrink: 0; }
+    .playback-controls.secondary-row { padding: 0 12px 12px; }
     .pill-btn { width: 44px; height: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .pill-btn.play-pause { width: 56px; height: 56px; }
+    .pill-btn.small { width: 36px; height: 36px; }
 
     .paste-row { padding: 6px 14px calc(10px + env(safe-area-inset-bottom)); }
     select, textarea, input[type="file"] { font-size: 16px; } /* prevents iOS auto-zoom-on-focus */
     .voice-item { padding: 10px 6px; }
+
+    .library-cards { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+    .library-cover { height: 100px; }
+    .library-view-header h2 { font-size: 17px; }
   }
   button, .icon-btn, .pill-btn, .page-nav-btn, .speed-stepper button {
     touch-action: manipulation; -webkit-tap-highlight-color: transparent;
@@ -167,12 +221,21 @@
   <div class="topbar">
     <div class="brand">Readloud</div>
     <input type="file" id="fileInput" accept=".pdf,.txt">
+    <button class="icon-btn" id="libraryBtn" title="Library">&#128218;</button>
     <button class="icon-btn" id="settingsBtn" title="Show/hide panel">&#9881;</button>
   </div>
   <div class="status-line" id="statusLine">Load a file, then select any text and choose "Speak" \u2014 or use the controls on the right.</div>
 
   <div class="app-layout">
     <div class="stage">
+      <div class="library-view" id="libraryView" style="display:none;">
+        <div class="library-view-header">
+          <h2>Your Library</h2>
+          <span id="libraryViewCount" class="library-view-count"></span>
+          <button class="icon-btn" id="libraryCloseBtn" title="Back to reading" style="margin-left:auto;">&#10005;</button>
+        </div>
+        <div class="library-cards" id="libraryCards"></div>
+      </div>
       <div class="page-wrap">
         <div class="page empty" id="pageEl">
           <div class="empty-msg" id="emptyMsg">Your book will appear here \u2014<br>select any passage and choose "Speak" to begin.</div>
@@ -193,8 +256,33 @@
         <button class="pill-btn play-pause" id="playPauseBtn" title="Play/Pause (Space)">&#9658;</button>
         <button class="pill-btn" id="nextBtn" title="Next line">&#9654;&#9654;</button>
       </div>
+      <div class="playback-controls secondary-row">
+        <button class="pill-btn small" id="prevParaBtn" title="Previous paragraph">&#182;&#9664;</button>
+        <button class="pill-btn small" id="bookmarkBtn" title="Bookmark this position">&#9873;</button>
+        <button class="pill-btn small" id="nextParaBtn" title="Next paragraph">&#182;&#9654;</button>
+      </div>
 
       <div class="settings-body">
+        <div class="voice-group open" id="libraryGroup">
+          <div class="voice-group-header" data-target="libraryList">
+            <span>Library</span>
+            <span><span class="count" id="libraryCount">0</span> <span class="chev">&#8250;</span></span>
+          </div>
+          <div class="voice-list" id="libraryList">
+            <div style="font-size:12px; color:var(--muted); padding:6px;">No books saved yet \u2014 load a PDF to start building your library.</div>
+          </div>
+        </div>
+
+        <div class="voice-group" id="bookmarkGroup">
+          <div class="voice-group-header" data-target="bookmarkList">
+            <span>Bookmarks</span>
+            <span><span class="count" id="bookmarkCount">0</span> <span class="chev">&#8250;</span></span>
+          </div>
+          <div class="voice-list" id="bookmarkList">
+            <div style="font-size:12px; color:var(--muted); padding:6px;">No bookmarks in this book yet.</div>
+          </div>
+        </div>
+
         <div class="settings-row">
           <div>
             <div class="settings-label">Enable Read Aloud Tracking</div>
@@ -282,6 +370,14 @@ const closeBtn = document.getElementById('closeBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const playPauseBtn = document.getElementById('playPauseBtn');
+const libraryBtn = document.getElementById('libraryBtn');
+const prevParaBtn = document.getElementById('prevParaBtn');
+const nextParaBtn = document.getElementById('nextParaBtn');
+const bookmarkBtn = document.getElementById('bookmarkBtn');
+const libraryList = document.getElementById('libraryList');
+const libraryCount = document.getElementById('libraryCount');
+const bookmarkList = document.getElementById('bookmarkList');
+const bookmarkCount = document.getElementById('bookmarkCount');
 
 let fullText = "";
 let wordSpans = [], sentenceEls = [], sentenceWordEls = [], chunks = [];
@@ -292,6 +388,349 @@ let kokoroAvailable = false;
 let currentAudioEl = null;
 let currentChunkIdx = 0;
 let trackingEnabled = true;
+let paragraphStarts = [];   // chunk indices that begin a new paragraph
+let currentBookId = null;   // identifies the book currently loaded, for library/resume/bookmarks
+let currentBookmarks = [];  // bookmarks for the currently loaded book
+
+// ---------- Library storage (IndexedDB) ----------
+// Stores: { id, title, fullText, lastChunkIdx, totalChunks, bookmarks:[{chunkIdx,label,savedAt}], dateAdded, dateLastOpened }
+let libraryDB = null;
+function openLibraryDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("readloud-library", 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains("books")) db.createObjectStore("books", { keyPath: "id" });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function ensureDB() { if (!libraryDB) libraryDB = await openLibraryDB(); return libraryDB; }
+
+function computeBookId(file) { return `${file.name}::${file.size}`; }
+
+async function getBook(id) {
+  const db = await ensureDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction("books", "readonly");
+    const req = tx.objectStore("books").get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+async function putBook(record) {
+  const db = await ensureDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction("books", "readwrite");
+    tx.objectStore("books").put(record);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => resolve(false);
+  });
+}
+async function deleteBook(id) {
+  const db = await ensureDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction("books", "readwrite");
+    tx.objectStore("books").delete(id);
+    tx.oncomplete = () => resolve(true);
+  });
+}
+async function getAllBooks() {
+  const db = await ensureDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction("books", "readonly");
+    const req = tx.objectStore("books").getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => resolve([]);
+  });
+}
+
+let saveTimer;
+function scheduleSavePosition() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if (!currentBookId) return;
+    const record = await getBook(currentBookId);
+    if (!record) return;
+    record.lastChunkIdx = currentChunkIdx;
+    record.totalChunks = chunks.length;
+    record.dateLastOpened = Date.now();
+    await putBook(record);
+  }, 1500);
+}
+
+async function loadBookIntoLibrary(file, extractedText, pageOffsets, thumbnail) {
+  const id = computeBookId(file);
+  let record = await getBook(id);
+  if (record) {
+    // Refresh text (in case source changed) but keep saved position/bookmarks.
+    record.fullText = extractedText;
+    record.pageOffsets = pageOffsets || [];
+    if (thumbnail) record.thumbnail = thumbnail;
+    record.dateLastOpened = Date.now();
+  } else {
+    record = { id, title: file.name, fullText: extractedText, pageOffsets: pageOffsets || [], thumbnail: thumbnail || null, lastChunkIdx: 0, totalChunks: 0, bookmarks: [], dateAdded: Date.now(), dateLastOpened: Date.now() };
+  }
+  await putBook(record);
+  return record;
+}
+
+function openBookRecord(record, autoResume) {
+  hideLibraryView();
+  currentBookId = record.id;
+  currentBookmarks = record.bookmarks || [];
+  pdfPageOffsets = record.pageOffsets || [];
+  setText(record.fullText);
+  renderGlobalBookmarks();
+  if (autoResume && record.lastChunkIdx > 0 && record.lastChunkIdx < chunks.length) {
+    currentChunkIdx = record.lastChunkIdx;
+    const chunk = chunks[currentChunkIdx];
+    if (chunk) {
+      highlightAtAbsoluteChar(chunk.startOffset);
+      statusLine.textContent = `Resumed from your last position (sentence ${currentChunkIdx + 1} of ${chunks.length}). Press Play to continue.`;
+    }
+  } else {
+    statusLine.textContent = "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+  }
+  renderLibrary();
+}
+
+async function renderLibrary() {
+  const books = await getAllBooks();
+  books.sort((a, b) => b.dateLastOpened - a.dateLastOpened);
+  libraryCount.textContent = books.length;
+  if (books.length === 0) {
+    libraryList.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">No books saved yet \u2014 load a PDF to start building your library.</div>';
+    return;
+  }
+  libraryList.innerHTML = "";
+  books.forEach(book => {
+    const pct = book.totalChunks > 0 ? Math.round(((book.lastChunkIdx + 1) / book.totalChunks) * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'voice-item';
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'stretch';
+    row.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="library-item-title">${escapeHtml(book.title)}</span>
+        <button class="library-item-delete" title="Remove from library">&#10005;</button>
+      </div>
+      <div class="library-item-meta">${pct}% read \u00b7 ${new Date(book.dateLastOpened).toLocaleDateString()}</div>
+      <div class="library-progress-track"><div class="library-progress-fill" style="width:${pct}%"></div></div>
+    `;
+    row.querySelector('.library-item-title').addEventListener('click', () => openBookRecord(book, true));
+    row.querySelector('.library-item-meta').addEventListener('click', () => openBookRecord(book, true));
+    row.querySelector('.library-item-delete').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await deleteBook(book.id);
+      if (currentBookId === book.id) currentBookId = null;
+      renderLibrary();
+    });
+    libraryList.appendChild(row);
+  });
+}
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ---------- Bookmarks (library-wide: shows bookmarks from every saved book) ----------
+async function renderGlobalBookmarks() {
+  const books = await getAllBooks();
+  let all = [];
+  books.forEach(book => {
+    (book.bookmarks || []).forEach(bm => all.push({ ...bm, bookId: book.id, bookTitle: book.title }));
+  });
+  all.sort((a, b) => b.savedAt - a.savedAt);
+  bookmarkCount.textContent = all.length;
+  if (all.length === 0) {
+    bookmarkList.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">No bookmarks yet \u2014 tap the flag icon while reading to add one.</div>';
+    updateBookmarkButtonState();
+    return;
+  }
+  bookmarkList.innerHTML = "";
+  all.forEach(bm => {
+    const row = document.createElement('div');
+    row.className = 'voice-item';
+    row.innerHTML = `
+      <div class="bookmark-main">
+        <div class="bookmark-book-title">${escapeHtml(bm.bookTitle)}</div>
+        <div class="bookmark-snippet">${escapeHtml(bm.label)}</div>
+      </div>
+      <button class="library-item-delete" title="Remove bookmark">&#10005;</button>
+    `;
+    row.querySelector('.bookmark-main').addEventListener('click', () => jumpToBookmark(bm));
+    row.querySelector('.library-item-delete').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const record = await getBook(bm.bookId);
+      if (record) {
+        record.bookmarks = (record.bookmarks || []).filter(b => b.savedAt !== bm.savedAt);
+        await putBook(record);
+        if (bm.bookId === currentBookId) currentBookmarks = record.bookmarks;
+      }
+      renderGlobalBookmarks();
+    });
+    bookmarkList.appendChild(row);
+  });
+  updateBookmarkButtonState();
+}
+async function jumpToBookmark(bm) {
+  if (bm.bookId === currentBookId) {
+    jumpToChunk(bm.chunkIdx);
+    return;
+  }
+  const record = await getBook(bm.bookId);
+  if (!record) return;
+  hideLibraryView();
+  currentBookId = record.id;
+  currentBookmarks = record.bookmarks || [];
+  pdfPageOffsets = record.pageOffsets || [];
+  setText(record.fullText);
+  renderGlobalBookmarks();
+  renderLibrary();
+  // Give layout a beat to settle before jumping so scroll/highlight lands correctly.
+  requestAnimationFrame(() => requestAnimationFrame(() => jumpToChunk(Math.min(bm.chunkIdx, chunks.length - 1))));
+}
+async function saveBookmarks() {
+  if (!currentBookId) return;
+  const record = await getBook(currentBookId);
+  if (!record) return;
+  record.bookmarks = currentBookmarks;
+  await putBook(record);
+}
+function updateBookmarkButtonState() {
+  const already = currentBookmarks.some(b => b.chunkIdx === currentChunkIdx);
+  bookmarkBtn.classList.toggle('is-bookmarked', already);
+}
+bookmarkBtn.addEventListener('click', async () => {
+  if (!currentBookId || chunks.length === 0) { statusLine.textContent = "Load a book first to add a bookmark."; return; }
+  const existing = currentBookmarks.find(b => b.chunkIdx === currentChunkIdx);
+  if (existing) {
+    currentBookmarks = currentBookmarks.filter(b => b !== existing);
+  } else {
+    const snippet = (chunks[currentChunkIdx]?.text || "").trim().slice(0, 40);
+    currentBookmarks.push({ chunkIdx: currentChunkIdx, label: snippet + (snippet.length === 40 ? "\u2026" : ""), savedAt: Date.now() });
+  }
+  await saveBookmarks();
+  renderGlobalBookmarks();
+  bookmarkBtn.classList.remove('pulse');
+  void bookmarkBtn.offsetWidth; // restart animation
+  bookmarkBtn.classList.add('pulse');
+});
+
+// ---------- Library card-grid view (Google-Drive style) ----------
+const libraryView = document.getElementById('libraryView');
+const libraryCards = document.getElementById('libraryCards');
+const libraryViewCount = document.getElementById('libraryViewCount');
+const pageWrapEl = document.querySelector('.page-wrap');
+
+const COVER_PALETTES = [
+  ['#5b6ee1', '#3a4bb0'], ['#e17055', '#b0472e'], ['#00b894', '#00816a'],
+  ['#6c5ce7', '#4b3bb0'], ['#e84393', '#b02f6f'], ['#0984e3', '#0761ab'],
+  ['#d4a24e', '#a67729'], ['#2f6fed', '#1c4fb0']
+];
+function coverGradientFor(title) {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) hash = (hash * 31 + title.charCodeAt(i)) >>> 0;
+  const [c1, c2] = COVER_PALETTES[hash % COVER_PALETTES.length];
+  const angle = 135;
+  return `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+}
+
+async function renderLibraryCards() {
+  const books = await getAllBooks();
+  books.sort((a, b) => b.dateLastOpened - a.dateLastOpened);
+  libraryViewCount.textContent = books.length ? `${books.length} book${books.length === 1 ? '' : 's'}` : '';
+  libraryCards.innerHTML = "";
+  if (books.length === 0) {
+    libraryCards.innerHTML = '<div class="library-empty-state">Your library is empty \u2014<br>load a PDF to add your first book.</div>';
+    return;
+  }
+  books.forEach(book => {
+    const pct = book.totalChunks > 0 ? Math.round(((book.lastChunkIdx + 1) / book.totalChunks) * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'library-card';
+    const coverStyle = book.thumbnail
+      ? `background-image:url('${book.thumbnail}'); background-size:cover; background-position:center top;`
+      : `background:${coverGradientFor(book.title)};`;
+    card.innerHTML = `
+      <div class="library-cover" style="${coverStyle}">
+        <button class="library-card-delete" title="Remove from library">&#10005;</button>
+        ${book.thumbnail ? '' : `<span>${escapeHtml(book.title.replace(/\.(pdf|txt)$/i, ''))}</span>`}
+      </div>
+      <div class="library-card-body">
+        <div class="library-card-title">${escapeHtml(book.title)}</div>
+        <div class="library-card-meta"><span>${pct}% read</span><span>${new Date(book.dateLastOpened).toLocaleDateString()}</span></div>
+        <div class="library-card-progress"><div class="library-card-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      hideLibraryView();
+      openBookRecord(book, true);
+    });
+    card.querySelector('.library-card-delete').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await deleteBook(book.id);
+      if (currentBookId === book.id) currentBookId = null;
+      renderLibraryCards();
+      renderLibrary();
+    });
+    libraryCards.appendChild(card);
+  });
+}
+
+function showLibraryView() {
+  libraryView.style.display = 'flex';
+  pageWrapEl.style.display = 'none';
+  pageNavEl_display_none_safe();
+  renderLibraryCards();
+}
+function hideLibraryView() {
+  libraryView.style.display = 'none';
+  pageWrapEl.style.display = 'flex';
+}
+
+// ---------- Library/Bookmark collapsible group headers (static, not generated like voice groups) ----------
+document.getElementById('libraryGroup').querySelector('.voice-group-header').addEventListener('click', function () {
+  this.closest('.voice-group').classList.toggle('open');
+});
+document.getElementById('bookmarkGroup').querySelector('.voice-group-header').addEventListener('click', function () {
+  this.closest('.voice-group').classList.toggle('open');
+});
+
+// ---------- Library button: opens/closes the full card-grid view ----------
+libraryBtn.addEventListener('click', () => {
+  if (libraryView.style.display === 'flex') { hideLibraryView(); return; }
+  stopCurrentAudio(); speechSynthesis.cancel(); clearFallbackTimers();
+  isPlaying = false; isPaused = false; isActivelyReading = false;
+  setPlayPauseIcon(false);
+  showLibraryView();
+});
+document.getElementById('libraryCloseBtn').addEventListener('click', hideLibraryView);
+function pageNavEl_display_none_safe() {
+  const el = document.getElementById('pageNav');
+  if (el) el.style.display = 'none';
+}
+
+// ---------- Paragraph navigation ----------
+function buildParagraphIndex() {
+  paragraphStarts = [];
+  for (let i = 0; i < chunks.length; i++) {
+    if (i === 0) { paragraphStarts.push(i); continue; }
+    const prevEnd = chunks[i - 1].startOffset + chunks[i - 1].text.length;
+    const gap = fullText.slice(prevEnd, chunks[i].startOffset);
+    if (gap.includes('\n\n')) paragraphStarts.push(i);
+  }
+}
+prevParaBtn.addEventListener('click', () => {
+  if (paragraphStarts.length === 0) return;
+  const priorStarts = paragraphStarts.filter(i => i < currentChunkIdx);
+  const target = priorStarts.length > 0 ? priorStarts[priorStarts.length - 1] : 0;
+  jumpToChunk(target);
+});
+nextParaBtn.addEventListener('click', () => {
+  if (paragraphStarts.length === 0) return;
+  const nextStart = paragraphStarts.find(i => i > currentChunkIdx);
+  jumpToChunk(nextStart !== undefined ? nextStart : chunks.length - 1);
+});
 
 const SPEED_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4];
 let speedIdx = 0;
@@ -425,6 +864,47 @@ function updateVoiceSelectionUI() {
 checkKokoroAndLoadVoices();
 
 // ---------- File loading ----------
+// Reconstructs paragraph/line structure from a PDF page's text items using their
+// vertical position, since pdf.js gives flat text with no line/paragraph info by default.
+// Fixes paragraph navigation, which depends on real "\n\n" gaps to find paragraph boundaries.
+function extractPageTextWithStructure(content) {
+  let pageText = "";
+  let lastY = null;
+  for (const item of content.items) {
+    const y = item.transform ? item.transform[5] : null;
+    const height = item.height || (item.transform ? Math.abs(item.transform[0]) : 10) || 10;
+    if (lastY !== null && y !== null) {
+      const dy = lastY - y;
+      if (dy > height * 1.6) pageText += "\n\n";       // big vertical jump = new paragraph
+      else if (dy > height * 0.4) pageText += "\n";     // normal line break
+      else if (pageText.length > 0 && !pageText.endsWith(" ")) pageText += " ";
+    }
+    pageText += item.str;
+    if (y !== null) lastY = y;
+  }
+  return pageText;
+}
+
+let pdfPageOffsets = []; // char offset in fullText where each real PDF page begins; empty for non-PDF text
+
+// Renders the PDF's actual first page to a small image, for a real auto-detected cover
+// (like Google Drive's thumbnails) instead of a generated color placeholder.
+async function renderPdfThumbnail(pdf) {
+  try {
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 0.45 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return canvas.toDataURL('image/jpeg', 0.72);
+  } catch (err) {
+    console.error('Thumbnail render failed:', err);
+    return null;
+  }
+}
+
 fileInput.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -437,37 +917,44 @@ fileInput.addEventListener('change', async (e) => {
       }
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const thumbnail = await renderPdfThumbnail(pdf);
       let text = "";
-      let failedPages = 0;
+      const offsets = [];
       for (let i = 1; i <= pdf.numPages; i++) {
-        try {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          text += content.items.map(it => it.str).join(" ") + "\n\n";
-        } catch (pageErr) {
-          console.error(`Page ${i} failed:`, pageErr);
-          failedPages++;
-        }
+        offsets.push(text.length);
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        // Normalize per-page so no run of 3+ newlines ever exists \u2014 setText()'s cleanup
+        // would otherwise shift character positions and desync these recorded page offsets.
+        const pageText = extractPageTextWithStructure(content).replace(/\n{3,}/g, '\n\n').replace(/\n+$/, '');
+        text += pageText + "\n\n";
         statusLine.textContent = `Extracting page ${i}/${pdf.numPages}...`;
       }
-      if (text.trim().length === 0) {
-        statusLine.textContent = "No readable text found in this PDF \u2014 it's likely a scanned/image-only document (no selectable text), which this app can't extract from.";
-        return;
-      }
-      setText(text);
-      statusLine.textContent = failedPages > 0
-        ? `Loaded (${failedPages} page(s) couldn't be read and were skipped). Select any text and choose "Speak".`
-        : "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+      // setText() also trims leading whitespace; compensate so offsets still line up with the final text.
+      const leadingTrim = text.length - text.replace(/^\s+/, '').length;
+      const adjustedOffsets = offsets.map(o => Math.max(0, o - leadingTrim));
+      const record = await loadBookIntoLibrary(file, text, adjustedOffsets, thumbnail);
+      pdfPageOffsets = adjustedOffsets;
+      openBookRecord(record, true);
     } else {
-      setText(await file.text());
-      statusLine.textContent = "Loaded. Select any text and choose \"Speak\", or use the play bar.";
+      const text = await file.text();
+      const record = await loadBookIntoLibrary(file, text, []);
+      pdfPageOffsets = [];
+      openBookRecord(record, true);
     }
   } catch (err) {
     console.error(err);
     statusLine.textContent = "Couldn't read that file: " + err.message;
   }
 });
-pasteArea.addEventListener('change', () => { if (pasteArea.value.trim()) { setText(pasteArea.value); statusLine.textContent = "Loaded."; } });
+pasteArea.addEventListener('change', () => {
+  if (pasteArea.value.trim()) {
+    currentBookId = null; currentBookmarks = []; pdfPageOffsets = [];
+    renderGlobalBookmarks();
+    setText(pasteArea.value);
+    statusLine.textContent = "Loaded (pasted text isn't saved to your library \u2014 upload a file for that).";
+  }
+});
 
 function setText(text) {
   fullText = text.trim().replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
@@ -476,17 +963,56 @@ function setText(text) {
   readerText.style.display = 'block';
   buildSpans();
   buildChunks();
+  buildParagraphIndex();
   requestAnimationFrame(() => requestAnimationFrame(setupPagination));
 }
 
-// ---------- Page numbers (discrete pages within the scrollable reading area) ----------
+// ---------- Page numbers ----------
+// When a PDF was loaded, pages are tracked by their REAL character offsets (pdfPageOffsets),
+// so "Page X of Y" matches the PDF's actual page count and Next/Prev Page moves to real page
+// boundaries -- not an estimate based on how much text happens to fit the visible height.
 const pageNav = document.getElementById('pageNav');
 const pageIndicator = document.getElementById('pageIndicator');
 const prevPageBtn = document.getElementById('prevPageBtn');
 const nextPageBtn = document.getElementById('nextPageBtn');
 let totalPages = 1;
 
+function usingRealPdfPages() { return pdfPageOffsets.length > 1; }
+
+function pdfPageNumberForOffset(charOffset) {
+  let page = 1;
+  for (let i = 0; i < pdfPageOffsets.length; i++) {
+    if (charOffset >= pdfPageOffsets[i]) page = i + 1; else break;
+  }
+  return page;
+}
+function charOffsetAtTopOfView() {
+  const scrollTop = pageEl.scrollTop;
+  for (const s of sentenceEls) {
+    if (s.el.offsetTop >= scrollTop - 4) return s.start;
+  }
+  return fullText.length;
+}
+function chunkIndexNearScrollTop(scrollTop) {
+  for (let i = 0; i < sentenceEls.length; i++) {
+    if (sentenceEls[i].el.offsetTop >= scrollTop - 4) return i;
+  }
+  return Math.max(0, sentenceEls.length - 1);
+}
+function chunkIndexAtOrAfterOffset(charOffset) {
+  for (let i = 0; i < sentenceEls.length; i++) {
+    if (sentenceEls[i].start >= charOffset) return i;
+  }
+  return Math.max(0, sentenceEls.length - 1);
+}
+
 function setupPagination() {
+  if (usingRealPdfPages()) {
+    totalPages = pdfPageOffsets.length;
+    pageNav.style.display = totalPages > 1 ? 'flex' : 'none';
+    updatePageIndicator();
+    return;
+  }
   const pageHeight = pageEl.clientHeight;
   if (!pageHeight) return;
   totalPages = Math.max(1, Math.ceil(pageEl.scrollHeight / pageHeight));
@@ -494,18 +1020,29 @@ function setupPagination() {
   updatePageIndicator();
 }
 function currentPageNumber() {
+  if (usingRealPdfPages()) return pdfPageNumberForOffset(charOffsetAtTopOfView());
   const pageHeight = pageEl.clientHeight;
   if (!pageHeight) return 1;
   return Math.min(totalPages, Math.round(pageEl.scrollTop / pageHeight) + 1);
 }
 function updatePageIndicator() { pageIndicator.textContent = `Page ${currentPageNumber()} of ${totalPages}`; }
-function goToPage(n) {
-  const pageHeight = pageEl.clientHeight;
+
+function goToPageAndSync(n) {
   const clamped = Math.max(1, Math.min(totalPages, n));
-  pageEl.scrollTo({ top: (clamped - 1) * pageHeight, behavior: 'smooth' });
+  if (usingRealPdfPages()) {
+    const targetOffset = pdfPageOffsets[clamped - 1];
+    const idx = chunkIndexAtOrAfterOffset(targetOffset);
+    if (sentenceEls[idx]) sentenceEls[idx].el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    if (chunks.length > 0) jumpToChunk(idx);
+    return;
+  }
+  const pageHeight = pageEl.clientHeight;
+  const targetScrollTop = (clamped - 1) * pageHeight;
+  pageEl.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+  if (chunks.length > 0) jumpToChunk(chunkIndexNearScrollTop(targetScrollTop));
 }
-prevPageBtn.addEventListener('click', () => goToPage(currentPageNumber() - 1));
-nextPageBtn.addEventListener('click', () => goToPage(currentPageNumber() + 1));
+prevPageBtn.addEventListener('click', () => goToPageAndSync(currentPageNumber() - 1));
+nextPageBtn.addEventListener('click', () => goToPageAndSync(currentPageNumber() + 1));
 let pageScrollDebounce;
 pageEl.addEventListener('scroll', () => {
   clearTimeout(pageScrollDebounce);
@@ -586,7 +1123,7 @@ document.addEventListener('mousedown', (e) => {
   if (!speakPopup.contains(e.target)) speakPopup.classList.remove('show');
 });
 
-// Mobile: touch-based text selection (drag handles) doesn't fire mouseup reliably,
+// iPhone/iPad: touch-based text selection (drag handles) doesn't fire mouseup reliably,
 // so watch selectionchange too, debounced until the user stops adjusting the selection.
 let selectionDebounce;
 document.addEventListener('selectionchange', () => {
@@ -649,6 +1186,8 @@ let playGeneration = 0;
 function speakFromChunk(idx) {
   if (idx >= chunks.length) { finishSpeaking(); return; }
   currentChunkIdx = idx;
+  scheduleSavePosition();
+  updateBookmarkButtonState();
   const myGeneration = ++playGeneration;
   stopCurrentAudio();
   speechSynthesis.cancel();
@@ -840,6 +1379,9 @@ document.addEventListener('keydown', (e) => {
     playPauseBtn.click();
   }
 });
+
+renderLibrary();
+renderGlobalBookmarks();
 </script>
 </body>
 </html>
